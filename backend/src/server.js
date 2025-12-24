@@ -18,41 +18,60 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Middlewares
-app.use(cors());
+// --- CONFIGURACIÓN DE MIDDLEWARES ---
+
+// Configuración de CORS optimizada para Vercel
+app.use(cors({
+  origin: "*", // Permite peticiones desde cualquier origen (ideal para pruebas con Vercel)
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // --- CONFIGURACIÓN DE CARPETA ESTÁTICA ---
-// Usamos process.cwd() para asegurar que busque en la raíz del proyecto
 const uploadsPath = path.join(process.cwd(), "uploads");
 
 if (!fs.existsSync(uploadsPath)) {
   fs.mkdirSync(uploadsPath, { recursive: true });
 }
 
-// Servir la carpeta física 'uploads' en la ruta virtual '/uploads'
 app.use("/uploads", express.static(uploadsPath));
 
-// Rutas API
+// --- RUTAS API ---
 app.use("/api/contacto", contactRoutes);
 app.use("/api/productos", productRoutes);
 
 // RUTA LOGIN
 app.post("/api/login", (req, res) => {
   const { password } = req.body;
-  if (password === process.env.ADMIN_PASSWORD) {
-    return res
-      .status(200)
-      .json({ success: true, message: "Autenticación exitosa" });
+  
+  // Verificación de seguridad básica
+  if (!password) {
+    return res.status(400).json({ success: false, message: "Contraseña requerida" });
   }
-  return res
-    .status(401)
-    .json({ success: false, message: "Contraseña incorrecta" });
+
+  if (password === process.env.ADMIN_PASSWORD) {
+    return res.status(200).json({ 
+      success: true, 
+      message: "Autenticación exitosa" 
+    });
+  }
+  
+  return res.status(401).json({ 
+    success: false, 
+    message: "Contraseña incorrecta" 
+  });
+});
+
+// Ruta de salud (Health Check) para Render
+app.get("/health", (req, res) => {
+  res.status(200).send("Server is running");
 });
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor en puerto ${PORT}`);
+  console.log(`🚀 Servidor operativo en puerto ${PORT}`);
   console.log(`🖼️ Carpeta de imágenes: ${uploadsPath}`);
 });
