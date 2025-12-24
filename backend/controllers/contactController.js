@@ -1,6 +1,5 @@
 import Message from '../models/Message.js';
 
-// AGREGA "export" justo aquí al inicio de la función
 export const nuevoMensaje = async (req, res) => {
   try {
     const mensaje = new Message(req.body);

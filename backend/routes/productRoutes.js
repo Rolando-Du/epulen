@@ -10,23 +10,41 @@ import upload from "../middleware/upload.js";
 
 const router = express.Router();
 
-// 1. Obtener todos los productos (público)
+// Rutas Públicas
 router.get("/", obtenerProductos);
-
-// 2. Obtener un solo producto por ID
 router.get("/:id", obtenerProductoPorId);
 
-// 3. Crear producto (Dashboard)
-// CAMBIO: 'upload.single' pasa a ser 'upload.array'
-// El primer parámetro 'imagenes' es el nombre del campo que usaremos en el FormData del frontend
-// El segundo parámetro (5) es el límite máximo de fotos por producto
-router.post("/", upload.array("imagenes", 5), nuevoProducto);
+// Rutas de Administración (Dashboard)
+router.post(
+  "/",
+  (req, res, next) => {
+    upload.array("imagenes", 5)(req, res, (err) => {
+      if (err) {
+        return res
+          .status(400)
+          .json({ msg: "Error al subir imágenes", error: err.message });
+      }
+      next();
+    });
+  },
+  nuevoProducto
+);
 
-// 4. Actualizar producto (Dashboard)
-// También actualizamos aquí para poder subir nuevas fotos al editar
-router.put("/:id", upload.array("imagenes", 5), actualizarProducto);
+router.put(
+  "/:id",
+  (req, res, next) => {
+    upload.array("imagenes", 5)(req, res, (err) => {
+      if (err) {
+        return res
+          .status(400)
+          .json({ msg: "Error al actualizar imágenes", error: err.message });
+      }
+      next();
+    });
+  },
+  actualizarProducto
+);
 
-// 5. Eliminar producto
 router.delete("/:id", eliminarProducto);
 
 export default router;

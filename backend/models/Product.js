@@ -23,13 +23,20 @@ const productSchema = mongoose.Schema(
       min: [0, "El precio no puede ser negativo"],
       set: (v) => Math.round(v),
     },
-    // CAMBIO: Ahora es un array para soportar múltiples fotos estilo Mercado Libre
-    imagenes: [
-      {
-        type: String,
-        required: [true, "Al menos una imagen es obligatoria"],
+    destacado: {
+      type: Boolean,
+      default: false,
+    },
+    imagenes: {
+      type: [String],
+      required: [true, "Al menos una imagen es obligatoria"],
+      validate: {
+        validator: function (v) {
+          return Array.isArray(v) && v.length > 0;
+        },
+        message: "Debes subir al menos una imagen",
       },
-    ],
+    },
     tallas: [
       {
         talle: { type: String, required: true },
@@ -48,11 +55,13 @@ const productSchema = mongoose.Schema(
   {
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
+    timestamps: true,
   }
 );
 
-// Middleware para calcular stock total automáticamente
-productSchema.pre("save", function () {
+// --- MIDDLEWARES ---
+// Al ser async, Mongoose sabe cuándo termina sin necesidad de llamar a next() manualmente.
+productSchema.pre("save", async function () {
   if (this.tallas && this.tallas.length > 0) {
     this.stockTotal = this.tallas.reduce(
       (acc, t) => acc + (Number(t.stock) || 0),
@@ -63,17 +72,21 @@ productSchema.pre("save", function () {
   }
 });
 
-// Virtual para el stock (compatibilidad frontend)
+// --- VIRTUALS ---
+
+// Virtual para el stock
 productSchema.virtual("stock").get(function () {
   return this.stockTotal;
 });
 
-// VIRTUAL ESTRATÉGICO:
-// Esto hace que si pides "imagenUrl", el modelo te devuelva la primera imagen del array.
-// Así el catálogo y el dashboard seguirán mostrando la foto principal sin errores.
+// Virtual para devolver la primera imagen como imagenUrl
 productSchema.virtual("imagenUrl").get(function () {
-  return this.imagenes && this.imagenes.length > 0 ? this.imagenes[0] : "";
+  if (this.imagenes && this.imagenes.length > 0) {
+    return this.imagenes[0];
+  }
+  return "";
 });
 
 const Product = mongoose.model("Product", productSchema);
+
 export default Product;

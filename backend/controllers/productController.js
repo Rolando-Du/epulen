@@ -32,43 +32,49 @@ export const obtenerProductoPorId = async (req, res) => {
 // 3. CREAR UN PRODUCTO
 export const nuevoProducto = async (req, res) => {
   try {
-    const { nombre, descripcion, categoria, precio, tallas } = req.body;
+    // console.log(" Datos recibidos:", req.body);
 
-    // Verificamos que se hayan subido archivos (req.files)
+    const { nombre, descripcion, categoria, precio, tallas, destacado } =
+      req.body;
+
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ msg: "Debes subir al menos una imagen" });
     }
 
     let tallasParseadas = [];
     try {
-      tallasParseadas = tallas ? JSON.parse(tallas) : [];
+      tallasParseadas =
+        typeof tallas === "string" ? JSON.parse(tallas) : tallas;
     } catch (e) {
       return res.status(400).json({ msg: "Formato de tallas inválido" });
     }
 
-    // Mapeamos el array de archivos a un array de rutas
-    const imagenes = req.files.map((file) => `/uploads/${file.filename}`);
+    const imagenesRutas = req.files.map((file) => `/uploads/${file.filename}`);
 
     const producto = new Product({
-      nombre,
-      descripcion,
-      categoria,
-      precio,
+      nombre: nombre.trim(),
+      descripcion: descripcion.trim(),
+      categoria: categoria.trim(),
+      precio: Number(precio),
       tallas: tallasParseadas,
-      imagenes, // Guardamos el array de rutas
+      imagenes: imagenesRutas,
+      // imagenUrl se genera automáticamente por el Virtual en el modelo
+      destacado: destacado === "true" || destacado === true,
     });
 
     await producto.save();
     res.status(201).json(producto);
   } catch (error) {
-    // Si hay error, borramos todos los archivos subidos
+    console.error("❌ Error en nuevoProducto:", error);
+
+    // Limpieza de archivos si falla la grabación en DB
     if (req.files) {
       req.files.forEach((file) => {
         const ruta = path.join(process.cwd(), "uploads", file.filename);
         if (fs.existsSync(ruta)) fs.unlinkSync(ruta);
       });
     }
-    res.status(400).json({ msg: error.message || "Error al crear" });
+    res.status(400).json({ msg: error.message || "Error al crear producto" });
   }
 };
 
@@ -83,38 +89,48 @@ export const actualizarProducto = async (req, res) => {
     if (!producto)
       return res.status(404).json({ msg: "No existe el producto" });
 
-    if (req.body.nombre) producto.nombre = req.body.nombre;
-    if (req.body.descripcion) producto.descripcion = req.body.descripcion;
-    if (req.body.categoria) producto.categoria = req.body.categoria;
-    if (req.body.precio) producto.precio = req.body.precio;
+    // Actualización de campos
+    if (req.body.nombre) producto.nombre = req.body.nombre.trim();
+    if (req.body.descripcion)
+      producto.descripcion = req.body.descripcion.trim();
+    if (req.body.categoria) producto.categoria = req.body.categoria.trim();
+    if (req.body.precio) producto.precio = Number(req.body.precio);
+
+    if (req.body.destacado !== undefined) {
+      producto.destacado =
+        req.body.destacado === "true" || req.body.destacado === true;
+    }
 
     if (req.body.tallas) {
       try {
-        producto.tallas = JSON.parse(req.body.tallas);
+        producto.tallas =
+          typeof req.body.tallas === "string"
+            ? JSON.parse(req.body.tallas)
+            : req.body.tallas;
       } catch (e) {
         return res.status(400).json({ msg: "Formato de tallas inválido" });
       }
     }
 
-    // Si se suben nuevas imágenes
+    // Si hay nuevas imágenes
     if (req.files && req.files.length > 0) {
-      // 1. Borramos las imágenes anteriores del servidor
+      // Borrar archivos físicos anteriores
       producto.imagenes.forEach((imgRuta) => {
-        const rutaAbsoluta = path.join(
-          process.cwd(),
-          imgRuta.replace(/^\//, "")
-        );
+        const nombreArchivo = path.basename(imgRuta);
+        const rutaAbsoluta = path.join(process.cwd(), "uploads", nombreArchivo);
         if (fs.existsSync(rutaAbsoluta)) fs.unlinkSync(rutaAbsoluta);
       });
 
-      // 2. Reemplazamos con las nuevas rutas
-      producto.imagenes = req.files.map((file) => `/uploads/${file.filename}`);
+      const nuevasImagenes = req.files.map(
+        (file) => `/uploads/${file.filename}`
+      );
+      producto.imagenes = nuevasImagenes;
     }
 
     await producto.save();
     res.json(producto);
   } catch (error) {
-    console.error("Error detallado:", error);
+    console.error("❌ Error en actualizarProducto:", error);
     res.status(500).json({ msg: "Error interno al actualizar" });
   }
 };
@@ -129,10 +145,11 @@ export const eliminarProducto = async (req, res) => {
     const producto = await Product.findById(id);
     if (!producto) return res.status(404).json({ msg: "No encontrado" });
 
-    // Borramos todas las imágenes del array del servidor
+    // Borrar archivos físicos
     if (producto.imagenes && producto.imagenes.length > 0) {
       producto.imagenes.forEach((imgRuta) => {
-        const ruta = path.join(process.cwd(), imgRuta.replace(/^\//, ""));
+        const nombreArchivo = path.basename(imgRuta);
+        const ruta = path.join(process.cwd(), "uploads", nombreArchivo);
         if (fs.existsSync(ruta)) fs.unlinkSync(ruta);
       });
     }
@@ -140,6 +157,7 @@ export const eliminarProducto = async (req, res) => {
     await producto.deleteOne();
     res.json({ msg: "Eliminado correctamente" });
   } catch (error) {
+    console.error("❌ Error en eliminarProducto:", error);
     res.status(500).json({ msg: "Error al eliminar" });
   }
 };
