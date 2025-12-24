@@ -1,0 +1,98 @@
+import React from "react";
+import { Link } from "react-router-dom";
+import LogoEpulen from "../assets/epulen.png";
+import { MapPin, Phone, Navigation } from "lucide-react";
+
+const Footer = () => {
+  return (
+    <footer className="bg-[#010409] text-slate-400 border-t border-slate-900">
+      <div className="max-w-6xl mx-auto px-8 py-16">
+        {/* GRID PRINCIPAL */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-14 mb-2">
+          {/* Branding */}
+          <div>
+            <img
+              src={LogoEpulen}
+              alt="Epulen Seguridad Industrial"
+              className="h-12 w-auto mb-6 opacity-95"
+            />
+            <p className="text-sm leading-relaxed text-slate-400 max-w-md">
+              Somos especialistas en seguridad e higiene industrial, ofreciendo
+              soluciones técnicas y preventivas que garantizan entornos de
+              trabajo seguros, cumplimiento normativo y protección del capital
+              humano.
+            </p>
+          </div>
+
+          {/* Áreas de Trabajo */}
+          <div className="md:pl-6">
+            <h4 className="text-white text-[11px] font-semibold uppercase tracking-[0.25em] mb-6">
+              Áreas de Trabajo
+            </h4>
+            <ul className="space-y-3 text-sm text-slate-400 max-w-sm">
+              <li>Elementos de Protección Personal (EPP)</li>
+              <li>Ingeniería y Gestión Ambiental</li>
+              <li>Capacitaciones Técnicas</li>
+              <li>Consultoría en Higiene y Seguridad</li>
+            </ul>
+          </div>
+
+          {/* Contacto */}
+          <div className="md:pl-6">
+            <h4 className="text-white text-[11px] font-semibold uppercase tracking-[0.25em] mb-6">
+              Contacto
+            </h4>
+
+            <div className="space-y-4 text-sm">
+              <div className="flex items-start gap-3">
+                <MapPin className="w-4 h-4 mt-0.5 text-[#24A35A]" />
+                <p className="leading-relaxed">
+                  Q8371 Junín de los Andes
+                  <br />
+                  Neuquén, Argentina
+                </p>
+              </div>
+
+              <a
+                href="https://www.google.com/maps/search/?api=1&query=Junín+de+los+Andes+Neuquén"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 hover:text-[#24A35A] transition-colors"
+              >
+                <Navigation className="w-4 h-4 text-[#24A35A]" />
+                <span>Cómo llegar</span>
+              </a>
+
+              <a
+                href="tel:+542944682812"
+                className="flex items-center gap-3 font-medium hover:text-[#24A35A] transition-colors"
+              >
+                <Phone className="w-4 h-4 text-[#24A35A]" />
+                <span>+54 294 468-2812</span>
+              </a>
+            </div>
+
+            <div className="mt-6 inline-flex items-center gap-2 px-3 py-1.5 border border-[#24A35A]/30 rounded-full">
+              <span className="w-2 h-2 rounded-full bg-[#24A35A] animate-pulse"></span>
+              <span className="text-[#24A35A] text-xs font-semibold tracking-wide">
+                DISPONIBILIDAD 24/7
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* BARRA INFERIOR */}
+      <div className="flex flex-col items-center text-center gap-2 pt-6 pb-8 border-t border-slate-800/60">
+        <p className="text-[11px] uppercase tracking-widest text-slate-600">
+          © 2025 Epulen Seguridad · Ingeniería en Protección
+        </p>
+        <p className="text-[10px] text-slate-700">
+          Diseño y desarrollo · Rolando Duarte
+        </p>
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;
