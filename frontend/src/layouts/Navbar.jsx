@@ -28,13 +28,10 @@ const Navbar = () => {
   return (
     <nav className="bg-[#020617] border-b border-slate-800 sticky top-0 z-50 backdrop-blur-md bg-opacity-80">
       <div className="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
-        {/* LOGO E IDENTIDAD - COLORES SINCRONIZADOS */}
+        {/* LOGO E IDENTIDAD */}
         <Link to="/" className="flex items-center group gap-4">
           <div className="relative flex items-center py-1">
-            {/* Resplandor de fondo mejorado */}
             <div className="absolute -inset-3 bg-[#24A35A] rounded-full blur-2xl opacity-0 group-hover:opacity-15 transition duration-700"></div>
-
-            {/* Logo con efecto de elevación */}
             <div className="relative transform transition-transform duration-500 group-hover:-translate-y-0.5">
               <img
                 src={LogoEpulen}
@@ -44,88 +41,62 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Divisor Vertical Decorativo */}
           <div className="h-8 w-px bg-linear-to-b from-transparent via-slate-700 to-transparent hidden md:block"></div>
 
-          {/* Texto Institucional Estilizado */}
           <div className="flex flex-col">
-            <span
-              className="
-      text-[#24A35A] 
-      text-[10px] md:text-xs 
-      font-black 
-      uppercase 
-      tracking-[0.3em] 
-      leading-none 
-      mb-1
-    "
-            >
+            <span className="text-[#24A35A] text-[10px] md:text-xs font-black uppercase tracking-[0.3em] leading-none mb-1">
               Seguridad e Higiene
             </span>
-            <span
-              className="
-      text-slate-400 
-      text-[9px] md:text-[11px] 
-      font-light 
-      uppercase 
-      tracking-[0.15em] 
-      group-hover:text-slate-200 
-      transition-colors 
-      duration-500
-    "
-            >
+            <span className="text-slate-400 text-[9px] md:text-[11px] font-light uppercase tracking-[0.15em] group-hover:text-slate-200 transition-colors duration-500">
               Industrial
             </span>
           </div>
         </Link>
 
         {/* MENÚ DE NAVEGACIÓN */}
-        <div className="flex items-center gap-10">
+        <div className="flex items-center gap-8">
           <Link
             to="/"
-            className={`text-xs font-black uppercase tracking-[0.2em] transition-colors ${
+            className={`text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${
               location.pathname === "/"
-                ? "text-[#24A35A]" /* Verde del logo para estado activo */
+                ? "text-[#24A35A]"
                 : "text-slate-400 hover:text-white"
             }`}
           >
-            Catálogo
+            Inicio
+          </Link>
+          <Link
+            to="/productos"
+            className={`text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${
+              location.pathname === "/productos"
+                ? "text-[#24A35A]"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            Productos
           </Link>
 
           {/* ÁREA PRIVADA ADMIN */}
           {isAuthenticated && (
-            <div className="flex items-center gap-8 pl-8 border-l border-slate-800">
+            <div className="flex items-center gap-6 pl-6 border-l border-slate-800">
               <Link
                 to="/admin"
-                className={`text-xs font-black uppercase tracking-[0.2em] transition-colors ${
+                className={`text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${
                   location.pathname === "/admin"
-                    ? "text-[#24A35A]" /* Verde del logo */
+                    ? "text-[#24A35A]"
                     : "text-slate-400 hover:text-white"
                 }`}
               >
-                Panel Control
+                Panel
               </Link>
 
               <button
                 onClick={handleLogout}
-                className="group flex items-center gap-2 bg-red-500/10 hover:bg-red-500 px-4 py-2 rounded-xl transition-all border border-red-500/20"
+                className="group flex items-center gap-2 bg-red-500/10 hover:bg-red-500 px-3 py-1.5 rounded-lg transition-all border border-red-500/20"
               >
-                <span className="text-red-500 group-hover:text-white text-[10px] font-black uppercase tracking-tighter">
+                <span className="text-red-500 group-hover:text-white text-[9px] font-black uppercase">
                   Salir
                 </span>
-                <svg
-                  className="w-4 h-4 text-red-500 group-hover:text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                  />
-                </svg>
               </button>
             </div>
           )}

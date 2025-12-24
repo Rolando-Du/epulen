@@ -1,17 +1,21 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Hero from "../layouts/Hero";
 import ProductCard from "../components/ProductCard";
 import ContactForm from "../components/ContactForm";
 
 const Home = () => {
-  const [productos, setProductos] = useState([]);
+  const navigate = useNavigate();
+  const [productosDestacados, setProductosDestacados] = useState([]);
   const [productosFiltrados, setProductosFiltrados] = useState([]);
   const [categoriaActiva, setCategoriaActiva] = useState("Todos");
   const [cargando, setCargando] = useState(true);
 
+  const visibleCount = 6;
+
   const categorias = [
     "Todos",
-    "Ropa",
+    "Indumentaria",
     "Calzado",
     "Guantes",
     "Alturas",
@@ -19,7 +23,6 @@ const Home = () => {
     "Señalización",
     "Extinción",
     "Herramientas",
-    "Otros",
   ];
 
   useEffect(() => {
@@ -27,8 +30,15 @@ const Home = () => {
       try {
         const respuesta = await fetch("http://localhost:5000/api/productos");
         const resultado = await respuesta.json();
-        setProductos(resultado);
-        setProductosFiltrados(resultado);
+
+        const destacados = resultado.filter((p) => {
+          return (
+            p.destacado === true || p.destacado === "true" || p.destacado === 1
+          );
+        });
+
+        setProductosDestacados(destacados);
+        setProductosFiltrados(destacados);
       } catch (error) {
         console.error("Error cargando productos:", error);
       } finally {
@@ -41,95 +51,115 @@ const Home = () => {
   const filtrarPorCategoria = (cat) => {
     setCategoriaActiva(cat);
     if (cat === "Todos") {
-      setProductosFiltrados(productos);
+      setProductosFiltrados(productosDestacados);
     } else {
-      const filtrados = productos.filter(
-        (p) => p.categoria.toLowerCase() === cat.toLowerCase()
+      const filtrados = productosDestacados.filter(
+        (p) => p.categoria?.toLowerCase() === cat.toLowerCase()
       );
       setProductosFiltrados(filtrados);
     }
-    // Opcional: Desplazar suavemente hacia arriba del catálogo al filtrar
-    document.getElementById("catalogo").scrollIntoView({ behavior: "smooth" });
   };
 
   return (
     <div className="min-h-screen bg-[#020617] text-slate-200">
       <Hero />
 
-      <main id="catalogo" className="max-w-7xl mx-auto py-20 px-6">
-        {/* BARRA DE FILTROS - ACTUALIZADA A GRID Y STICKY */}
-        <div className="mb-10  top-0 z-40 bg-[#020617]/80 backdrop-blur-md py-4">
-          <p className="text-orange-500 font-black text-[10px] uppercase tracking-[0.3em] mb-6 opacity-80">
-            Filtrar por Especialidad Técnica
-          </p>
+      {/* SECCIÓN CATEGORÍAS */}
+      <section className="max-w-7xl mx-auto py-20 px-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+          <div>
+            <p className="text-[#24A35A] font-black text-[10px] uppercase tracking-[0.4em] mb-2">
+              Especialidades
+            </p>
+            <h2 className="text-4xl font-black text-white uppercase tracking-tighter">
+              Productos <span className="text-[#E67E22]">Destacados</span>
+            </h2>
+          </div>
+        </div>
 
-          {/* Grid: 2 columnas en móvil, Flex en escritorio */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:flex lg:flex-wrap gap-3">
-            {categorias.map((cat) => (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {categorias
+            .filter((c) => c !== "Todos")
+            .map((cat) => (
               <button
                 key={cat}
                 onClick={() => filtrarPorCategoria(cat)}
-                className={`w-full lg:w-auto px-4 py-4 rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all duration-300 border flex items-center justify-center text-center ${
+                className={`group relative p-6 rounded-[19px] border transition-all duration-500 overflow-hidden ${
                   categoriaActiva === cat
-                    ? "bg-orange-600 border-orange-600 text-white shadow-[0_10px_30px_rgba(234,88,12,0.3)] scale-105"
-                    : "bg-slate-900 border-slate-800 text-slate-500 hover:border-orange-500/50 hover:text-orange-500"
+                    ? "bg-[#24A35A] border-[#24A35A] shadow-xl shadow-[#24A35A]/20"
+                    : "bg-slate-900/50 border-slate-800 hover:border-[#24A35A]/50"
                 }`}
               >
-                {cat}
+                <span
+                  className={`text-[10px] font-black uppercase tracking-widest relative z-10 ${
+                    categoriaActiva === cat
+                      ? "text-white"
+                      : "text-slate-400 group-hover:text-white"
+                  }`}
+                >
+                  {cat}
+                </span>
+                <div className="absolute -bottom-2 -right-2 text-white/5 font-black text-4xl italic group-hover:scale-110 transition-transform">
+                  {cat.substring(0, 3)}
+                </div>
               </button>
             ))}
-          </div>
         </div>
+      </section>
 
-        {/* LISTADO DINÁMICO */}
-        <div className="flex items-center gap-6 mb-16">
-          <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter">
-            Equipos: <span className="text-orange-600">{categoriaActiva}</span>
-          </h2>
-          <div className="h-px flex-1 bg-linear-to-r from-slate-800 to-transparent"></div>
-        </div>
-
+      {/* SECCIÓN CATÁLOGO */}
+      <main
+        id="catalogo"
+        className="max-w-7xl mx-auto py-10 pb-20 px-6 border-t border-slate-900"
+      >
         {cargando ? (
           <div className="text-center py-32">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-orange-500 border-r-2 mb-4"></div>
+            <div className="inline-block animate-spin rounded-full h-10 w-10 border-t-2 border-[#24A35A] border-r-2 mb-4"></div>
             <p className="text-slate-500 font-black tracking-[0.3em] text-[10px] uppercase">
-              Sincronizando con Servidor...
+              Sincronizando...
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-            {productosFiltrados.length > 0 ? (
-              productosFiltrados.map((prod) => (
-                <div
-                  key={prod._id}
-                  className="animate-in fade-in slide-in-from-bottom-4 duration-700"
-                >
+          <div className="pt-10">
+            {productosFiltrados.length === 0 ? (
+              <div className="text-center py-20 border border-dashed border-slate-800 rounded-3xl">
+                <p className="text-slate-500 uppercase text-[10px] font-black tracking-widest">
+                  No hay productos destacados en "{categoriaActiva}"
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                {productosFiltrados.slice(0, visibleCount).map((prod) => (
                   <ProductCard
+                    key={prod._id}
                     id={prod._id}
                     nombre={prod.nombre}
                     categoria={prod.categoria}
-                    descripcion={prod.descripcion}
                     precio={prod.precio}
-                    imagen={`http://localhost:5000${prod.imagenUrl}`}
+                    imagen={`http://localhost:5000${
+                      prod.imagenUrl || (prod.imagenes && prod.imagenes[0])
+                    }`}
                     tallas={prod.tallas}
                   />
-                </div>
-              ))
-            ) : (
-              <div className="col-span-full py-32 text-center border-2 border-dashed border-slate-900 rounded-[3rem]">
-                <p className="text-slate-600 uppercase font-black tracking-widest text-xs">
-                  Sin stock disponible en esta categoría
-                </p>
+                ))}
               </div>
             )}
+
+            <div className="mt-24 text-center relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-900"></div>
+              </div>
+              <button
+                onClick={() => navigate("/productos")}
+                className="relative z-10 px-10 py-4 bg-[#020617] border border-[#24A35A] hover:bg-[#24A35A] rounded-full text-[10px] font-black uppercase tracking-[0.3em] text-white transition-all active:scale-95 shadow-lg shadow-[#24A35A]/10"
+              >
+                Ver Todo el Catálogo
+              </button>
+            </div>
           </div>
         )}
 
-        {/* SECCIÓN DE CONTACTO */}
         <div className="mt-48 relative">
-          <div className="absolute -top-24 left-1/2 -translate-x-1/2 text-slate-900 font-black text-8xl opacity-20 select-none tracking-tighter hidden md:block">
-            CONTACTO
-          </div>
           <ContactForm />
         </div>
       </main>

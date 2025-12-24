@@ -6,21 +6,19 @@ const ProductCard = ({
   nombre,
   categoria,
   descripcion,
-  imagen, // Este vendrá del backend (p.imagenUrl o p.imagenes[0])
+  imagen,
   tallas,
   precio,
 }) => {
-  // Cálculo de stock total
   const stockTotal = tallas?.reduce((acc, t) => acc + Number(t.stock), 0) || 0;
 
-  // URL BASE DEL BACKEND: Ajustamos la ruta de la imagen
-  // Si la imagen ya viene con "http", la usamos; si no, le agregamos el dominio del servidor.
   const urlImagenPrincipal = imagen?.startsWith("http")
     ? imagen
     : `http://localhost:5000${imagen}`;
 
   return (
-    <div className="group relative bg-slate-900/40 border border-slate-800 rounded-4xl overflow-hidden hover:border-orange-500/40 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
+    /* h-full permite que la card estire al alto de la fila si usas grid en el padre */
+    <div className="group relative flex flex-col h-full bg-slate-900/40 border border-slate-800 rounded-4xl overflow-hidden hover:border-orange-500/40 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
       {/* Badge de Stock */}
       <div className="absolute top-4 right-4 z-10">
         <span
@@ -40,10 +38,9 @@ const ProductCard = ({
         </span>
       </div>
 
-      {/* Contenedor de Imagen - Ahora usa urlImagenPrincipal */}
-      <div className="aspect-square bg-slate-950/50 p-6 flex items-center justify-center relative overflow-hidden">
+      {/* Contenedor de Imagen - Aspecto fijo */}
+      <div className="aspect-square bg-slate-950/50 p-6 flex items-center justify-center relative overflow-hidden shrink-0">
         <div className="absolute inset-0 bg-linear-to-tr from-orange-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
         <img
           src={urlImagenPrincipal}
           alt={nombre}
@@ -54,58 +51,69 @@ const ProductCard = ({
         />
       </div>
 
-      {/* Cuerpo de la Card */}
-      <div className="p-6">
+      {/* Cuerpo de la Card - flex-grow para empujar el footer hacia abajo */}
+      <div className="p-6 flex flex-col grow text-left">
         <span className="text-orange-500 font-black text-[10px] uppercase tracking-[0.3em] mb-2 block">
           {categoria}
         </span>
 
-        <h3 className="text-xl font-black text-white uppercase italic leading-tight mb-2 group-hover:text-orange-500 transition-colors line-clamp-1">
+        {/* Título con altura fija (2 líneas máximo) */}
+        <h3 className="text-xl font-black text-white uppercase italic leading-tight mb-2 group-hover:text-orange-500 transition-colors line-clamp-2 h-12">
           {nombre}
         </h3>
 
-        <p className="text-slate-400 text-xs leading-relaxed line-clamp-2 mb-5 font-medium">
+        {/* Descripción con altura fija (2 líneas máximo) */}
+        <p className="text-slate-400 text-xs leading-relaxed line-clamp-2 mb-5 font-medium h-8">
           {descripcion}
         </p>
 
-        {/* Sección de Talles */}
-        <div className="mb-6">
+        {/* Sección de Talles - Altura mínima para que no salten las cards */}
+        <div className="mb-6 min-h-17.5">
           <p className="text-slate-500 text-[9px] uppercase font-bold tracking-widest mb-2">
             Talles Disponibles
           </p>
           <div className="flex flex-wrap gap-2">
-            {tallas?.map((t, i) => (
-              <div
-                key={i}
-                className={`flex flex-col items-center justify-center min-w-10 h-11.25 rounded-xl border transition-all duration-300 ${
-                  t.stock > 0
-                    ? "bg-slate-800/50 border-slate-700 text-white group-hover:border-orange-500/30"
-                    : "bg-slate-900/20 border-slate-800 text-slate-600 opacity-50"
-                }`}
-              >
-                <span className="text-[11px] font-black italic">
-                  T{t.talle}
-                </span>
-                <span
-                  className={`text-[8px] font-bold ${
-                    t.stock > 0 ? "text-orange-500" : "text-slate-700"
+            {tallas?.slice(0, 8).map(
+              (
+                t,
+                i 
+              ) => (
+                <div
+                  key={i}
+                  className={`flex flex-col items-center justify-center min-w-10 h-11 rounded-xl border transition-all duration-300 ${
+                    t.stock > 0
+                      ? "bg-slate-800/50 border-slate-700 text-white"
+                      : "bg-slate-900/20 border-slate-800 text-slate-600 opacity-50"
                   }`}
                 >
-                  {t.stock}u
-                </span>
-              </div>
-            ))}
+                  <span className="text-[11px] font-black italic">
+                    T{t.talle}
+                  </span>
+                  <span
+                    className={`text-[8px] font-bold ${
+                      t.stock > 0 ? "text-orange-500" : "text-slate-700"
+                    }`}
+                  >
+                    {t.stock}u
+                  </span>
+                </div>
+              )
+            )}
+            {tallas?.length > 4 && (
+              <span className="text-[10px] text-slate-600 self-center">
+                ...
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Precio y Botón */}
-        <div className="flex flex-col gap-4">
-          <div className="flex items-baseline justify-between">
+        <div className="mt-auto flex flex-col gap-4">
+          <div className="flex items-baseline justify-between border-t border-slate-800 pt-4">
             <span className="text-2xl font-black text-white tracking-tighter">
               ${Number(precio).toLocaleString("es-CL")}
             </span>
             <span className="text-slate-500 text-[10px] font-bold uppercase">
-              Precio Neto
+              Neto
             </span>
           </div>
 

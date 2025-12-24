@@ -67,7 +67,7 @@ const Login = () => {
             )}
           </div>
 
-          {/* CORRECCIÓN AQUÍ: Usamos JSX real en lugar de strings */}
+
           <h2 className="text-3xl font-black text-white uppercase tracking-tighter">
             {error ? (
               <>Acceso <span className="text-red-500">Denegado</span></>
@@ -132,8 +132,8 @@ const Login = () => {
         </form>
 
         <div className="mt-10 pt-6 border-t border-slate-800/50 text-center">
-          <p className="text-slate-600 text-[9px] font-medium uppercase tracking-widest">
-            Protocolo de Encriptación de Grado Militar Activado
+          <p className="text-slate-300 text-[9px] font-medium uppercase tracking-widest">
+            Protocolo de Encriptación AES-256 Activado
           </p>
         </div>
       </div>

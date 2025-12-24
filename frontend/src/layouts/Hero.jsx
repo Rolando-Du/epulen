@@ -3,15 +3,10 @@ import React from "react";
 const Hero = () => {
   return (
     <header className="relative py-20 md:py-32 px-6 overflow-hidden bg-[#020617]">
-      {/* Fondo con resplandor en Verde Epulen */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(36,163,90,0.08),transparent_50%)]"></div>
-
-      {/* Línea decorativa superior en degradado de marca */}
       <div className="absolute top-0 left-0 w-full h-px bg-linear-to-r from-transparent via-[#24A35A]/50 to-transparent"></div>
-
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="grid lg:grid-cols-12 gap-16 items-center">
-          {/* BLOQUE IZQUIERDO: TEXTO Y ACCIÓN */}
           <div className="lg:col-span-7 flex flex-col justify-center">
             {/* Badge de Certificación */}
             <div className="inline-flex items-center gap-3 w-fit px-4 py-1.5 rounded-full border border-[#24A35A]/30 bg-[#24A35A]/10 mb-8">
@@ -88,10 +83,8 @@ const Hero = () => {
             </div>
           </div>
 
-          {/* BLOQUE DERECHO: IMAGEN CON ESTILO TÉCNICO */}
           <div className="lg:col-span-5 relative hidden lg:block">
             <div className="relative z-10 rounded-[2.5rem] overflow-hidden border border-slate-800 group transition-all duration-500 hover:border-[#24A35A]/50 shadow-[0_0_50px_-12px_rgba(36,163,90,0.3)]">
-              {/* Overlay de color dinámico */}
               <div className="absolute inset-0 bg-linear-to-t from-[#020617] via-transparent to-transparent opacity-60"></div>
 
               <img

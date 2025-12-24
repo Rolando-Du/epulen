@@ -7,7 +7,6 @@ const Footer = () => {
   return (
     <footer className="bg-[#010409] text-slate-400 border-t border-slate-900">
       <div className="max-w-6xl mx-auto px-8 py-16">
-        {/* GRID PRINCIPAL */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-14 mb-2">
           {/* Branding */}
           <div>
@@ -23,7 +22,6 @@ const Footer = () => {
               humano.
             </p>
           </div>
-
           {/* Áreas de Trabajo */}
           <div className="md:pl-6">
             <h4 className="text-white text-[11px] font-semibold uppercase tracking-[0.25em] mb-6">
@@ -36,7 +34,6 @@ const Footer = () => {
               <li>Consultoría en Higiene y Seguridad</li>
             </ul>
           </div>
-
           {/* Contacto */}
           <div className="md:pl-6">
             <h4 className="text-white text-[11px] font-semibold uppercase tracking-[0.25em] mb-6">
@@ -81,13 +78,12 @@ const Footer = () => {
           </div>
         </div>
       </div>
-
       {/* BARRA INFERIOR */}
       <div className="flex flex-col items-center text-center gap-2 pt-6 pb-8 border-t border-slate-800/60">
-        <p className="text-[11px] uppercase tracking-widest text-slate-600">
+        <p className="text-[11px] uppercase tracking-widest text-slate-500">
           © 2025 Epulen Seguridad · Ingeniería en Protección
         </p>
-        <p className="text-[10px] text-slate-700">
+        <p className="text-[10px] text-slate-500">
           Diseño y desarrollo · Rolando Duarte
         </p>
       </div>
