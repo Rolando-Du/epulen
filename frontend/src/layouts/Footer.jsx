@@ -1,42 +1,51 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import LogoEpulen from "../assets/epulen.png";
 import { MapPin, Phone, Navigation } from "lucide-react";
 
 const Footer = () => {
   return (
     <footer className="bg-[#010409] text-slate-400 border-t border-slate-900">
-      <div className="max-w-6xl mx-auto px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-14 mb-2">
+      <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8 py-12 sm:py-14">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12">
           {/* Branding */}
           <div>
             <img
               src={LogoEpulen}
               alt="Epulen Seguridad Industrial"
-              className="h-12 w-auto mb-6 opacity-95"
+              className="h-10 sm:h-12 w-auto mb-5 opacity-95"
+              loading="lazy"
             />
-            <p className="text-sm leading-relaxed text-slate-400 max-w-md">
+            <p className="text-sm leading-relaxed text-slate-400 max-w-prose">
               Somos especialistas en seguridad e higiene industrial, ofreciendo
               soluciones técnicas y preventivas que garantizan entornos de
               trabajo seguros, cumplimiento normativo y protección del capital
               humano.
             </p>
           </div>
+
           {/* Áreas de Trabajo */}
           <div className="md:pl-6">
-            <h4 className="text-white text-[11px] font-semibold uppercase tracking-[0.25em] mb-6">
+            <h4 className="text-white text-[11px] font-semibold uppercase tracking-[0.25em] mb-4 sm:mb-6">
               Áreas de Trabajo
             </h4>
-            <ul className="space-y-3 text-sm text-slate-400 max-w-sm">
-              <li>Elementos de Protección Personal (EPP)</li>
-              <li>Ingeniería y Gestión Ambiental</li>
-              <li>Capacitaciones Técnicas</li>
-              <li>Consultoría en Higiene y Seguridad</li>
+
+            <ul className="space-y-2.5 text-sm text-slate-400 max-w-sm">
+              <li className="leading-relaxed">
+                Elementos de Protección Personal (EPP)
+              </li>
+              <li className="leading-relaxed">
+                Ingeniería y Gestión Ambiental
+              </li>
+              <li className="leading-relaxed">Capacitaciones Técnicas</li>
+              <li className="leading-relaxed">
+                Consultoría en Higiene y Seguridad
+              </li>
             </ul>
           </div>
+
           {/* Contacto */}
           <div className="md:pl-6">
-            <h4 className="text-white text-[11px] font-semibold uppercase tracking-[0.25em] mb-6">
+            <h4 className="text-white text-[11px] font-semibold uppercase tracking-[0.25em] mb-4 sm:mb-6">
               Contacto
             </h4>
 
@@ -70,22 +79,27 @@ const Footer = () => {
             </div>
 
             <div className="mt-6 inline-flex items-center gap-2 px-3 py-1.5 border border-[#24A35A]/30 rounded-full">
-              <span className="w-2 h-2 rounded-full bg-[#24A35A] animate-pulse"></span>
-              <span className="text-[#24A35A] text-xs font-semibold tracking-wide">
+              <span className="w-2 h-2 rounded-full bg-[#24A35A] animate-pulse" />
+              <span className="text-[#24A35A] text-[11px] font-semibold tracking-wide">
                 DISPONIBILIDAD 24/7
               </span>
             </div>
           </div>
         </div>
       </div>
+
       {/* BARRA INFERIOR */}
-      <div className="flex flex-col items-center text-center gap-2 pt-6 pb-8 border-t border-slate-800/60">
-        <p className="text-[11px] uppercase tracking-widest text-slate-500">
-          © 2025 Epulen Seguridad · Ingeniería en Protección
-        </p>
-        <p className="text-[10px] text-slate-500">
-          Diseño y desarrollo · Rolando Duarte
-        </p>
+      <div className="border-t border-slate-800/60">
+        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-center">
+            <p className="text-[11px] uppercase tracking-widest text-slate-500">
+              © 2025 Epulen Seguridad · Ingeniería en Protección
+            </p>
+            <p className="text-[10px] text-slate-500">
+              Diseño y desarrollo · Rolando Duarte
+            </p>
+          </div>
+        </div>
       </div>
     </footer>
   );

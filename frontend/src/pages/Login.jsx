@@ -6,42 +6,44 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
   const navigate = useNavigate();
+
+  const API_URL = import.meta.env.VITE_API_URL || "";
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (!password) return;
+    if (!password || isLoading) return;
+
+    if (!API_URL) {
+      alert("Falta configurar VITE_API_URL en tu .env / Vercel.");
+      return;
+    }
 
     setIsLoading(true);
     setError(false);
 
     try {
-      // LLAMADA AL BACKEND
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/login`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ password }),
-        }
-      );
+      const response = await fetch(`${API_URL}/api/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
-      if (data.success) {
+      if (response.ok && data?.success) {
         localStorage.setItem("admin_auth", "true");
         navigate("/admin");
       } else {
         setError(true);
         setPassword("");
-        setTimeout(() => setError(false), 3000);
+        setTimeout(() => setError(false), 2500);
       }
     } catch (err) {
       console.error("Error de conexión:", err);
       alert(
-        "Error crítico: No se pudo establecer conexión con el servidor de seguridad."
+        "No se pudo conectar con el servidor. Verificá que el backend esté online."
       );
     } finally {
       setIsLoading(false);
@@ -49,27 +51,29 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#020617] flex items-center justify-center px-6 relative overflow-hidden font-sans">
-      {/* Efectos de Iluminación de Fondo */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-orange-600/10 blur-[120px] rounded-full"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/5 blur-[120px] rounded-full"></div>
+    <div className="min-h-screen bg-[#020617] flex items-center justify-center px-4 sm:px-6 relative overflow-hidden font-sans">
+      {/* Efectos de iluminación */}
+      <div className="pointer-events-none absolute top-[-10%] left-[-10%] w-[60%] sm:w-[50%] h-[50%] bg-orange-600/10 blur-[120px] rounded-full" />
+      <div className="pointer-events-none absolute bottom-[-10%] right-[-10%] w-[55%] sm:w-[40%] h-[40%] bg-blue-600/5 blur-[120px] rounded-full" />
 
-      {/* Contenedor Principal */}
+      {/* Card */}
       <div
-        className={`max-w-md w-full bg-slate-900/40 backdrop-blur-2xl p-10 rounded-[2.5rem] border ${
+        className={[
+          "w-full max-w-md bg-slate-900/40 backdrop-blur-2xl p-6 sm:p-10 rounded-3xl border relative z-10 transition-all duration-300",
           error
-            ? "border-red-500/50 shadow-red-900/20"
-            : "border-slate-800 shadow-2xl"
-        } relative z-10 transition-all duration-300`}
+            ? "border-red-500/50 shadow-[0_30px_80px_rgba(127,29,29,0.25)]"
+            : "border-slate-800 shadow-2xl",
+        ].join(" ")}
       >
-        {/* Icono y Título */}
-        <div className="text-center mb-10">
+        {/* Header */}
+        <div className="text-center mb-8 sm:mb-10">
           <div
-            className={`inline-flex p-4 rounded-3xl mb-6 transition-colors ${
+            className={[
+              "inline-flex p-4 rounded-3xl mb-6 border transition-colors",
               error
                 ? "bg-red-500/10 border-red-500/20"
-                : "bg-orange-600/10 border-orange-600/20"
-            } border`}
+                : "bg-orange-600/10 border-orange-600/20",
+            ].join(" ")}
           >
             {error ? (
               <svg
@@ -102,7 +106,7 @@ const Login = () => {
             )}
           </div>
 
-          <h2 className="text-3xl font-black text-white uppercase tracking-tighter">
+          <h2 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight">
             {error ? (
               <>
                 Acceso <span className="text-red-500">Denegado</span>
@@ -114,13 +118,13 @@ const Login = () => {
             )}
           </h2>
 
-          <p className="text-slate-500 text-[10px] mt-3 uppercase tracking-[0.4em] font-black italic">
+          <p className="text-slate-500 text-[10px] mt-3 uppercase tracking-[0.35em] font-black italic">
             SecurityPro Authentication
           </p>
         </div>
 
-        {/* Formulario */}
-        <form onSubmit={handleLogin} className="space-y-8">
+        {/* Form */}
+        <form onSubmit={handleLogin} className="space-y-6 sm:space-y-8">
           <div className="relative">
             <div className="flex justify-between items-center mb-2 px-1">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
@@ -137,20 +141,25 @@ const Login = () => {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••••••"
-                className={`w-full p-4 pr-14 bg-slate-950/50 border-2 ${
+                className={[
+                  "w-full p-4 pr-14 bg-slate-950/50 border-2 rounded-2xl text-white outline-none transition-all font-mono text-base sm:text-lg placeholder:text-slate-800",
                   error
                     ? "border-red-500/50 ring-4 ring-red-500/10"
-                    : "border-slate-800 focus:border-orange-500/50"
-                } rounded-2xl text-white outline-none transition-all font-mono text-lg placeholder:text-slate-800`}
+                    : "border-slate-800 focus:border-orange-500/60 focus:ring-2 focus:ring-orange-500/15",
+                ].join(" ")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
+                autoComplete="current-password"
               />
 
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={() => setShowPassword((v) => !v)}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-orange-500 transition-colors p-1"
+                aria-label={
+                  showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                }
               >
                 {showPassword ? (
                   <svg
@@ -194,13 +203,14 @@ const Login = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs transition-all flex items-center justify-center gap-3 active:scale-[0.98] ${
+            className={[
+              "w-full py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] transition-all flex items-center justify-center gap-3 active:scale-[0.98]",
               isLoading
                 ? "bg-slate-800 text-slate-500 cursor-not-allowed"
                 : error
                 ? "bg-red-600 text-white shadow-lg shadow-red-900/40"
-                : "bg-orange-600 hover:bg-orange-500 text-white shadow-lg shadow-orange-900/40 hover:-translate-y-1"
-            }`}
+                : "bg-orange-600 hover:bg-orange-500 text-white shadow-lg shadow-orange-900/40 hover:-translate-y-0.5",
+            ].join(" ")}
           >
             {isLoading ? (
               <>
@@ -216,12 +226,12 @@ const Login = () => {
                     r="10"
                     stroke="currentColor"
                     strokeWidth="4"
-                  ></circle>
+                  />
                   <path
                     className="opacity-75"
                     fill="currentColor"
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
+                  />
                 </svg>
                 Verificando...
               </>
@@ -231,9 +241,16 @@ const Login = () => {
               "Desbloquear Sistema"
             )}
           </button>
+
+          {!API_URL && (
+            <p className="text-[11px] text-red-300/80 text-center">
+              Falta <span className="text-red-200 font-bold">VITE_API_URL</span>{" "}
+              en tu .env / Vercel.
+            </p>
+          )}
         </form>
 
-        <div className="mt-10 pt-6 border-t border-slate-800/50 text-center">
+        <div className="mt-8 sm:mt-10 pt-6 border-t border-slate-800/50 text-center">
           <p className="text-slate-300 text-[9px] font-medium uppercase tracking-widest">
             Protocolo de Encriptación AES-256 Activado
           </p>
