@@ -8,6 +8,9 @@ const Productos = () => {
   const [categoriaActiva, setCategoriaActiva] = useState("Todos");
   const [cargando, setCargando] = useState(true);
 
+  // URL dinámica de la API
+  const API_URL = import.meta.env.VITE_API_URL;
+
   const categorias = [
     "Todos",
     "Indumentaria",
@@ -24,10 +27,11 @@ const Productos = () => {
   useEffect(() => {
     const obtenerProductos = async () => {
       try {
-        const respuesta = await fetch("http://localhost:5000/api/productos");
+        // CORRECCIÓN: Uso de API_URL
+        const respuesta = await fetch(`${API_URL}/api/productos`);
         const resultado = await respuesta.json();
 
-        // Ordenar por fecha
+        // Ordenar por fecha (más recientes primero)
         const ordenados = resultado.sort(
           (a, b) => new Date(b.creadoEn) - new Date(a.creadoEn)
         );
@@ -41,11 +45,10 @@ const Productos = () => {
       }
     };
     obtenerProductos();
-  }, []);
+  }, [API_URL]);
 
   // 2. LÓGICA DE FILTRADO
   useEffect(() => {
-    // Usamos una variable temporal para filtrar
     let temporal = productos;
 
     // Filtro por Categoría
@@ -55,13 +58,12 @@ const Productos = () => {
       );
     }
 
-    // Filtro por Búsqueda (Protegido contra nulos/indefinidos)
+    // Filtro por Búsqueda
     if (busqueda.trim() !== "") {
       const query = busqueda.toLowerCase();
       temporal = temporal.filter((p) => {
         const nombre = p.nombre ? p.nombre.toLowerCase() : "";
         const descripcion = p.descripcion ? p.descripcion.toLowerCase() : "";
-
         return nombre.includes(query) || descripcion.includes(query);
       });
     }
@@ -120,7 +122,12 @@ const Productos = () => {
 
         {/* LISTADO */}
         {cargando ? (
-          <div className="text-center py-40">Cargando...</div>
+          <div className="text-center py-40 flex flex-col items-center gap-4">
+            <div className="w-10 h-10 border-4 border-[#24A35A]/20 border-t-[#24A35A] rounded-full animate-spin"></div>
+            <p className="text-slate-500 font-black text-[10px] uppercase tracking-widest">
+              Sincronizando Almacén...
+            </p>
+          </div>
         ) : (
           <>
             <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-8">
@@ -135,9 +142,8 @@ const Productos = () => {
                   nombre={prod.nombre}
                   categoria={prod.categoria}
                   precio={prod.precio}
-                  imagen={`http://localhost:5000${
-                    prod.imagenUrl || (prod.imagenes && prod.imagenes[0])
-                  }`}
+                  // CORRECCIÓN: Pasamos solo la ruta relativa, ProductCard añade el API_URL
+                  imagen={prod.imagenUrl || (prod.imagenes && prod.imagenes[0])}
                   tallas={prod.tallas}
                 />
               ))}

@@ -11,6 +11,9 @@ const Home = () => {
   const [categoriaActiva, setCategoriaActiva] = useState("Todos");
   const [cargando, setCargando] = useState(true);
 
+  // Variable de entorno para la API
+  const API_URL = import.meta.env.VITE_API_URL;
+
   const visibleCount = 6;
 
   const categorias = [
@@ -28,7 +31,8 @@ const Home = () => {
   useEffect(() => {
     const obtenerProductos = async () => {
       try {
-        const respuesta = await fetch("http://localhost:5000/api/productos");
+        // CORRECCIÓN: Uso de API_URL
+        const respuesta = await fetch(`${API_URL}/api/productos`);
         const resultado = await respuesta.json();
 
         const destacados = resultado.filter((p) => {
@@ -46,7 +50,7 @@ const Home = () => {
       }
     };
     obtenerProductos();
-  }, []);
+  }, [API_URL]);
 
   const filtrarPorCategoria = (cat) => {
     setCategoriaActiva(cat);
@@ -136,9 +140,10 @@ const Home = () => {
                     nombre={prod.nombre}
                     categoria={prod.categoria}
                     precio={prod.precio}
-                    imagen={`http://localhost:5000${
+                    // CORRECCIÓN: Pasamos solo la ruta, ProductCard se encarga del resto
+                    imagen={
                       prod.imagenUrl || (prod.imagenes && prod.imagenes[0])
-                    }`}
+                    }
                     tallas={prod.tallas}
                   />
                 ))}

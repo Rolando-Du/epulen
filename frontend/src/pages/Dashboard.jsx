@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 
 const Dashboard = () => {
   const LIMITE_STOCK_BAJO = 5;
+  // Obtenemos la URL de la API desde las variables de entorno de Vite
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const estadoInicialProducto = {
     nombre: "",
@@ -27,11 +29,12 @@ const Dashboard = () => {
 
   useEffect(() => {
     refrescarLista();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const refrescarLista = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/productos");
+      const res = await fetch(`${API_URL}/api/productos`);
       if (!res.ok) throw new Error("Error al obtener datos");
       const data = await res.json();
       setProductos(data);
@@ -80,7 +83,7 @@ const Dashboard = () => {
     });
   };
 
-  // --- ACCIÓN PRINCIPAL  ---
+  // --- ACCIÓN PRINCIPAL ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMensaje("⏳ Procesando...");
@@ -91,17 +94,13 @@ const Dashboard = () => {
     }
 
     const formData = new FormData();
-    // Campos básicos
     formData.append("nombre", producto.nombre.trim());
     formData.append("descripcion", producto.descripcion.trim());
     formData.append("categoria", producto.categoria.trim());
     formData.append("precio", Number(producto.precio));
-    formData.append("destacado", producto.destacado); // Se envía como string "true"/"false"
-
-    // Tallas como JSON String
+    formData.append("destacado", producto.destacado);
     formData.append("tallas", JSON.stringify(producto.tallas));
 
-    // Imágenes
     if (imagenesFiles.length > 0) {
       imagenesFiles.forEach((file) => {
         formData.append("imagenes", file);
@@ -109,13 +108,13 @@ const Dashboard = () => {
     }
 
     const url = editando
-      ? `http://localhost:5000/api/productos/${idEditar}`
-      : "http://localhost:5000/api/productos";
+      ? `${API_URL}/api/productos/${idEditar}`
+      : `${API_URL}/api/productos`;
 
     try {
       const res = await fetch(url, {
         method: editando ? "PUT" : "POST",
-        body: formData, // No poner headers de Content-Type, el navegador lo hace solo con FormData
+        body: formData,
       });
 
       const data = await res.json();
@@ -128,14 +127,10 @@ const Dashboard = () => {
         refrescarLista();
         setTimeout(() => setMensaje(""), 3000);
       } else {
-        // Aquí capturamos el error 400 detallado del backend
-        console.error("Error del servidor:", data);
-        setMensaje(
-          `❌ Error: ${data.message || data.msg || "Datos inválidos"}`
-        );
+        setMensaje(`❌ Error: ${data.message || "Datos inválidos"}`);
       }
+      // eslint-disable-next-line no-unused-vars
     } catch (error) {
-      console.error("Error de conexión:", error);
       setMensaje("❌ Error de red o servidor caído");
     }
   };
@@ -168,7 +163,7 @@ const Dashboard = () => {
   const eliminarProd = async (id) => {
     if (!window.confirm("¿Eliminar este producto?")) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/productos/${id}`, {
+      const res = await fetch(`${API_URL}/api/productos/${id}`, {
         method: "DELETE",
       });
       if (res.ok) {
@@ -186,7 +181,6 @@ const Dashboard = () => {
     "Todas",
     ...new Set(productos.map((p) => p.categoria)),
   ];
-
   const productosFiltrados = productos.filter(
     (p) =>
       p.nombre.toLowerCase().includes(busqueda.toLowerCase()) &&
@@ -263,7 +257,7 @@ const Dashboard = () => {
                   />
                 ) : producto.imagenUrlPrevia ? (
                   <img
-                    src={`http://localhost:5000${producto.imagenUrlPrevia}`}
+                    src={`${API_URL}${producto.imagenUrlPrevia}`}
                     className="h-40 object-contain rounded-xl"
                     alt="Actual"
                   />
@@ -441,7 +435,7 @@ const Dashboard = () => {
                   }`}
                 >
                   <img
-                    src={`http://localhost:5000${p.imagenUrl}`}
+                    src={`${API_URL}${p.imagenUrl}`}
                     className="w-16 h-16 object-contain bg-slate-900 rounded-lg"
                     alt={p.nombre}
                     onError={(e) =>
