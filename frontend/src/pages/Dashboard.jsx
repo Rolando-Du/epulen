@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 
 const Dashboard = () => {
   const LIMITE_STOCK_BAJO = 5;
-  // Obtenemos la URL de la API desde las variables de entorno de Vite
   const API_URL = import.meta.env.VITE_API_URL;
 
   const estadoInicialProducto = {
@@ -21,7 +21,6 @@ const Dashboard = () => {
   const [inputCantidad, setInputCantidad] = useState("");
   const [imagenesFiles, setImagenesFiles] = useState([]);
   const [productos, setProductos] = useState([]);
-  const [mensaje, setMensaje] = useState("");
   const [busqueda, setBusqueda] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
   const [editando, setEditando] = useState(false);
@@ -44,12 +43,10 @@ const Dashboard = () => {
     }
   };
 
-  // --- CÁLCULOS ---
   const totalEquipos = productos.reduce(
     (acc, p) => acc + (p.tallas?.reduce((a, t) => a + Number(t.stock), 0) || 0),
     0
   );
-
   const valorTotalInventario = productos.reduce(
     (acc, p) =>
       acc +
@@ -62,7 +59,13 @@ const Dashboard = () => {
     if (!inputTalle || !inputCantidad) return;
     const existe = producto.tallas.find((t) => t.talle === inputTalle);
     if (existe) {
-      alert("Este talle ya está en la lista.");
+      Swal.fire({
+        icon: "warning",
+        title: "Talle Duplicado",
+        text: "Este talle ya está en la lista.",
+        background: "#0f172a",
+        color: "#f8fafc",
+      });
       return;
     }
     setProducto({
@@ -76,22 +79,26 @@ const Dashboard = () => {
     setInputCantidad("");
   };
 
-  const quitarTalleDeLista = (talleNombre) => {
-    setProducto({
-      ...producto,
-      tallas: producto.tallas.filter((t) => t.talle !== talleNombre),
-    });
-  };
-
-  // --- ACCIÓN PRINCIPAL ---
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMensaje("⏳ Procesando...");
-
     if (producto.tallas.length === 0) {
-      setMensaje("⚠️ Agrega al menos un talle");
+      Swal.fire({
+        icon: "error",
+        title: "Faltan talles",
+        text: "Agrega al menos un talle y su stock",
+      });
       return;
     }
+
+    Swal.fire({
+      title: "Procesando...",
+      didOpen: () => {
+        Swal.showLoading();
+      },
+      allowOutsideClick: false,
+      background: "#0f172a",
+      color: "#fff",
+    });
 
     const formData = new FormData();
     formData.append("nombre", producto.nombre.trim());
@@ -102,9 +109,7 @@ const Dashboard = () => {
     formData.append("tallas", JSON.stringify(producto.tallas));
 
     if (imagenesFiles.length > 0) {
-      imagenesFiles.forEach((file) => {
-        formData.append("imagenes", file);
-      });
+      imagenesFiles.forEach((file) => formData.append("imagenes", file));
     }
 
     const url = editando
@@ -117,22 +122,83 @@ const Dashboard = () => {
         body: formData,
       });
 
-      const data = await res.json();
-
       if (res.ok) {
-        setMensaje(
-          editando ? "✅ Actualizado correctamente" : "✅ Producto creado"
-        );
+        Swal.fire({
+          icon: "success",
+          title: editando ? "Actualizado" : "Creado",
+          text: `El producto se ha ${
+            editando ? "actualizado" : "guardado"
+          } con éxito`,
+          timer: 2000,
+          showConfirmButton: false,
+          background: "#0f172a",
+          color: "#fff",
+        });
         cancelarEdicion();
         refrescarLista();
-        setTimeout(() => setMensaje(""), 3000);
       } else {
-        setMensaje(`❌ Error: ${data.message || "Datos inválidos"}`);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "No se pudo completar la operación",
+        });
       }
       // eslint-disable-next-line no-unused-vars
     } catch (error) {
-      setMensaje("❌ Error de red o servidor caído");
+      Swal.fire({
+        icon: "error",
+        title: "Error de servidor",
+        text: "Verifica la conexión con la API",
+      });
     }
+  };
+
+  const eliminarProd = async (id) => {
+    const resultado = await Swal.fire({
+      title: "¿Estás seguro?",
+      text: "Esta acción no se puede deshacer",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ea580c",
+      cancelButtonColor: "#334155",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+      background: "#0f172a",
+      color: "#fff",
+    });
+
+    if (resultado.isConfirmed) {
+      try {
+        const res = await fetch(`${API_URL}/api/productos/${id}`, {
+          method: "DELETE",
+        });
+        if (res.ok) {
+          Swal.fire({
+            title: "Eliminado",
+            icon: "success",
+            timer: 1500,
+            showConfirmButton: false,
+            background: "#0f172a",
+            color: "#fff",
+          });
+          refrescarLista();
+        }
+        // eslint-disable-next-line no-unused-vars
+      } catch (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "No se pudo eliminar el producto",
+        });
+      }
+    }
+  };
+
+  const quitarTalleDeLista = (talleNombre) => {
+    setProducto({
+      ...producto,
+      tallas: producto.tallas.filter((t) => t.talle !== talleNombre),
+    });
   };
 
   const prepararEdicion = (p) => {
@@ -158,23 +224,6 @@ const Dashboard = () => {
     setImagenesFiles([]);
     setInputTalle("");
     setInputCantidad("");
-  };
-
-  const eliminarProd = async (id) => {
-    if (!window.confirm("¿Eliminar este producto?")) return;
-    try {
-      const res = await fetch(`${API_URL}/api/productos/${id}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        refrescarLista();
-        setMensaje("🗑️ Eliminado");
-        setTimeout(() => setMensaje(""), 2000);
-      }
-      // eslint-disable-next-line no-unused-vars
-    } catch (error) {
-      setMensaje("❌ Error al eliminar");
-    }
   };
 
   const categoriasUnicas = [
@@ -221,12 +270,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {mensaje && (
-          <div className="fixed top-5 right-5 z-50 bg-slate-800 border border-orange-500 text-white px-6 py-3 rounded-2xl font-bold shadow-2xl">
-            {mensaje}
-          </div>
-        )}
-
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           {/* FORMULARIO */}
           <div
@@ -235,11 +278,11 @@ const Dashboard = () => {
             }`}
           >
             <h2 className="text-xl font-black text-white uppercase mb-6 flex justify-between">
-              {editando ? "✏️ Editando" : "📦 Nuevo Ingreso"}
+              {editando ? "✏️ Editando Producto" : "📦 Nuevo Ingreso"}
               {editando && (
                 <button
                   onClick={cancelarEdicion}
-                  className="text-[10px] text-slate-400 hover:text-white"
+                  className="text-[10px] text-slate-400 hover:text-white cursor-pointer"
                 >
                   Cancelar
                 </button>
@@ -247,7 +290,6 @@ const Dashboard = () => {
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* PREVIEW */}
               <div className="bg-[#020617] rounded-3xl p-4 border border-slate-800 flex flex-col items-center">
                 {imagenesFiles.length > 0 ? (
                   <img
@@ -310,17 +352,16 @@ const Dashboard = () => {
                   onChange={(e) =>
                     setProducto({ ...producto, destacado: e.target.checked })
                   }
-                  className="w-5 h-5 accent-orange-500"
+                  className="w-5 h-5 accent-orange-500 cursor-pointer"
                 />
                 <label
                   htmlFor="destacado"
-                  className="text-xs font-bold text-slate-400 uppercase"
+                  className="text-xs font-bold text-slate-400 uppercase cursor-pointer"
                 >
                   Producto Destacado ⭐
                 </label>
               </div>
 
-              {/* GESTIÓN DE TALLES */}
               <div className="bg-orange-500/5 p-4 rounded-2xl border border-orange-500/20">
                 <div className="flex gap-2 mb-4">
                   <input
@@ -340,7 +381,7 @@ const Dashboard = () => {
                   <button
                     type="button"
                     onClick={agregarTalleALista}
-                    className="bg-orange-600 px-4 rounded-lg font-bold"
+                    className="bg-orange-600 px-4 rounded-lg font-bold cursor-pointer hover:bg-orange-500 transition-colors"
                   >
                     +
                   </button>
@@ -355,7 +396,7 @@ const Dashboard = () => {
                       <button
                         type="button"
                         onClick={() => quitarTalleDeLista(t.talle)}
-                        className="ml-2 text-red-500"
+                        className="ml-2 text-red-500 cursor-pointer font-bold"
                       >
                         ×
                       </button>
@@ -375,7 +416,7 @@ const Dashboard = () => {
               />
 
               <div className="flex gap-4">
-                <div className="flex-1 relative bg-slate-800 p-4 rounded-2xl text-center border border-slate-700">
+                <div className="flex-1 relative bg-slate-800 p-4 rounded-2xl text-center border border-slate-700 cursor-pointer hover:bg-slate-700 transition-colors">
                   <input
                     type="file"
                     multiple
@@ -393,7 +434,7 @@ const Dashboard = () => {
                 </div>
                 <button
                   type="submit"
-                  className={`flex-[1.5] py-4 rounded-2xl font-black uppercase text-white ${
+                  className={`flex-[1.5] py-4 rounded-2xl font-black uppercase text-white cursor-pointer hover:opacity-90 transition-opacity ${
                     editando ? "bg-blue-600" : "bg-orange-600"
                   }`}
                 >
@@ -414,7 +455,7 @@ const Dashboard = () => {
                 onChange={(e) => setBusqueda(e.target.value)}
               />
               <select
-                className="bg-slate-900 border border-slate-800 rounded-xl px-4 text-xs font-bold text-orange-500"
+                className="bg-slate-900 border border-slate-800 rounded-xl px-4 text-xs font-bold text-orange-500 cursor-pointer"
                 value={filtroCategoria}
                 onChange={(e) => setFiltroCategoria(e.target.value)}
               >
@@ -452,13 +493,13 @@ const Dashboard = () => {
                     <div className="flex gap-2 mt-2">
                       <button
                         onClick={() => prepararEdicion(p)}
-                        className="text-[9px] font-bold text-blue-400 uppercase"
+                        className="text-[9px] font-bold text-blue-400 uppercase cursor-pointer hover:text-blue-300 transition-colors"
                       >
                         Editar
                       </button>
                       <button
                         onClick={() => eliminarProd(p._id)}
-                        className="text-[9px] font-bold text-red-500 uppercase"
+                        className="text-[9px] font-bold text-red-500 uppercase cursor-pointer hover:text-red-400 transition-colors"
                       >
                         Borrar
                       </button>
