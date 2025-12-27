@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable"; // Cambio 1: Importación nominal
+import autoTable from "jspdf-autotable";
 
 const Dashboard = () => {
   const API_URL = import.meta.env.VITE_API_URL;
@@ -29,7 +29,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     refrescarLista();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const refrescarLista = async () => {
@@ -88,7 +88,6 @@ const Dashboard = () => {
         });
       });
 
-      // Cambio 2: Llamada directa a la función autoTable
       autoTable(doc, {
         startY: 35,
         head: [
@@ -103,7 +102,7 @@ const Dashboard = () => {
         ],
         body: tablaDatos,
         theme: "striped",
-        headStyles: { fillColor: [234, 88, 12] }, // Color Naranja Pro
+        headStyles: { fillColor: [234, 88, 12] },
       });
 
       doc.save(`Inventario_SeguridadPro_${fecha.replace(/\//g, "-")}.pdf`);
@@ -128,11 +127,19 @@ const Dashboard = () => {
     }
   };
 
+  // --- ACTUALIZACIÓN DE TALLE ---
   const agregarTalleALista = () => {
     if (!inputTalle || !inputCantidad) return;
-    const existe = producto.tallas.find(
-      (t) => t.talle.toUpperCase() === inputTalle.toUpperCase()
-    );
+
+    let valorLimpio = inputTalle.trim().toUpperCase();
+
+    valorLimpio = valorLimpio.replace(/^(T-|T)+/, "");
+
+    // 3. Formateamos estrictamente como T- seguido del valor limpio
+    const talleFormateado = `-${valorLimpio}`;
+
+    const existe = producto.tallas.find((t) => t.talle === talleFormateado);
+
     if (existe) {
       Swal.fire({
         icon: "warning",
@@ -142,11 +149,12 @@ const Dashboard = () => {
       });
       return;
     }
+
     setProducto({
       ...producto,
       tallas: [
         ...producto.tallas,
-        { talle: inputTalle.toUpperCase(), stock: Number(inputCantidad) },
+        { talle: talleFormateado, stock: Number(inputCantidad) },
       ],
     });
     setInputTalle("");
@@ -204,7 +212,7 @@ const Dashboard = () => {
         cancelarEdicion();
         refrescarLista();
       }
-    // eslint-disable-next-line no-unused-vars
+      // eslint-disable-next-line no-unused-vars
     } catch (error) {
       Swal.fire({
         icon: "error",
@@ -243,7 +251,7 @@ const Dashboard = () => {
           });
           refrescarLista();
         }
-      // eslint-disable-next-line no-unused-vars
+        // eslint-disable-next-line no-unused-vars
       } catch (error) {
         Swal.fire({ icon: "error", title: "Error al eliminar" });
       }
@@ -289,7 +297,6 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-[#020617] py-8 px-4 text-slate-200 font-sans">
       <div className="max-w-7xl mx-auto">
-        {/* HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6 border-b border-slate-800 pb-8">
           <div>
             <h1 className="text-4xl font-black text-white uppercase tracking-tighter italic">
@@ -331,7 +338,6 @@ const Dashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-          {/* FORMULARIO */}
           <div
             className={`bg-slate-900/50 p-8 rounded-[2.5rem] border-2 transition-all ${
               editando ? "border-blue-500" : "border-slate-800"
@@ -408,7 +414,7 @@ const Dashboard = () => {
                 <div className="flex gap-2 mb-4">
                   <input
                     type="text"
-                    placeholder="Talle"
+                    placeholder="Talle (ej: 45 o XL)"
                     className="flex-1 p-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-center"
                     value={inputTalle}
                     onChange={(e) => setInputTalle(e.target.value)}
@@ -493,7 +499,6 @@ const Dashboard = () => {
             </form>
           </div>
 
-          {/* LISTADO */}
           <div className="bg-slate-900/50 p-8 rounded-[2.5rem] border border-slate-800 flex flex-col max-h-150">
             <div className="flex gap-2 mb-6">
               <input
