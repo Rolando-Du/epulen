@@ -91,7 +91,7 @@ const Footer = () => {
       {/* BARRA INFERIOR */}
       <div className="border-t border-slate-800/60">
         <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-center">
+          <div className="flex flex-col sm:flex-row items-center justify-around gap-2 text-center">
             <p className="text-[11px] uppercase tracking-widest text-slate-500">
               © 2025 Epulen Seguridad · Ingeniería en Protección
             </p>
