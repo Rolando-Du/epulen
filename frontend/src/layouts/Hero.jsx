@@ -84,10 +84,8 @@ const Hero = () => {
 
           {/* VIDEO */}
           <div className="relative w-full">
-            {/* Marco exterior */}
-            <div className="relative rounded-[32px] border border-[#D7DDD4] bg-[#E8EBE5] p-3 shadow-[0_24px_70px_rgba(36,49,40,0.10)] sm:p-4">
-              {/* Video horizontal 16:9 para mostrar los costados */}
-              <div className="relative aspect-video w-full overflow-hidden rounded-[24px] bg-[#243128]">
+            <div className="relative rounded-4xl border border-[#D7DDD4] bg-[#E8EBE5] p-3 shadow-[0_24px_70px_rgba(36,49,40,0.10)] sm:p-4">
+              <div className="relative aspect-video w-full overflow-hidden rounded-3xl bg-[#243128]">
                 <video
                   className="absolute inset-0 h-full w-full object-cover"
                   autoPlay
@@ -96,6 +94,9 @@ const Hero = () => {
                   playsInline
                   preload="auto"
                   aria-label="Video de Epulén Seguridad Industrial"
+                  onLoadedMetadata={(e) => {
+                    e.currentTarget.playbackRate = 0.55;
+                  }}
                 >
                   <source src={VideoEpulen} type="video/mp4" />
                   Tu navegador no soporta reproducción de video.
