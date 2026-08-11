@@ -1,58 +1,57 @@
 import React from "react";
 import LogoEpulen from "../assets/epulen.png";
-import { MapPin, Phone, Navigation } from "lucide-react";
+import { MapPin, Navigation, Phone } from "lucide-react";
 
 const Footer = () => {
+  const year = new Date().getFullYear();
+
   return (
-    <footer className="bg-[#010409] text-slate-400 border-t border-slate-900">
-      <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8 py-12 sm:py-14">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12">
-          {/* Branding */}
+    <footer className="border-t border-[#35463A] bg-[#243128] text-[#D9E0D8]">
+      <div className="mx-auto w-full max-w-7xl px-5 py-14 sm:px-8 lg:px-12 lg:py-16">
+        <div className="grid grid-cols-1 gap-12 md:grid-cols-3 md:gap-10">
+          {/* MARCA */}
           <div>
-            <img
-              src={LogoEpulen}
-              alt="Epulen Seguridad Industrial"
-              className="h-10 sm:h-12 w-auto mb-5 opacity-95"
-              loading="lazy"
-            />
-            <p className="text-sm leading-relaxed text-slate-400 max-w-prose">
-              Somos especialistas en seguridad e higiene industrial, ofreciendo
-              soluciones técnicas y preventivas que garantizan entornos de
-              trabajo seguros, cumplimiento normativo y protección del capital
-              humano.
+            <div className="inline-flex rounded-2xl bg-[#F7F4ED] px-4 py-3">
+              <img
+                src={LogoEpulen}
+                alt="Epulén Seguridad Industrial"
+                className="h-9 w-auto sm:h-10"
+                loading="lazy"
+              />
+            </div>
+
+            <p className="mt-5 max-w-sm text-sm leading-relaxed text-[#B9C3B8]">
+              Soluciones en seguridad e higiene industrial, equipamiento y
+              elementos de protección personal para acompañar entornos de
+              trabajo más seguros.
             </p>
           </div>
 
-          {/* Áreas de Trabajo */}
-          <div className="md:pl-6">
-            <h4 className="text-white text-[11px] font-semibold uppercase tracking-[0.25em] mb-4 sm:mb-6">
-              Áreas de Trabajo
-            </h4>
+          {/* ÁREAS */}
+          <div>
+            <p className="mb-5 text-xs font-medium uppercase tracking-[0.18em] text-[#9FB09F]">
+              Áreas de trabajo
+            </p>
 
-            <ul className="space-y-2.5 text-sm text-slate-400 max-w-sm">
-              <li className="leading-relaxed">
-                Elementos de Protección Personal (EPP)
-              </li>
-              <li className="leading-relaxed">
-                Ingeniería y Gestión Ambiental
-              </li>
-              <li className="leading-relaxed">Capacitaciones Técnicas</li>
-              <li className="leading-relaxed">
-                Consultoría en Higiene y Seguridad
-              </li>
+            <ul className="space-y-3 text-sm text-[#CBD3CA]">
+              <li>Elementos de Protección Personal (EPP)</li>
+              <li>Ingeniería y Gestión Ambiental</li>
+              <li>Capacitaciones Técnicas</li>
+              <li>Consultoría en Higiene y Seguridad</li>
             </ul>
           </div>
 
-          {/* Contacto */}
-          <div className="md:pl-6">
-            <h4 className="text-white text-[11px] font-semibold uppercase tracking-[0.25em] mb-4 sm:mb-6">
+          {/* CONTACTO */}
+          <div id="contacto">
+            <p className="mb-5 text-xs font-medium uppercase tracking-[0.18em] text-[#9FB09F]">
               Contacto
-            </h4>
+            </p>
 
             <div className="space-y-4 text-sm">
               <div className="flex items-start gap-3">
-                <MapPin className="w-4 h-4 mt-0.5 text-[#24A35A]" />
-                <p className="leading-relaxed">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#AAB7A6]" />
+
+                <p className="leading-relaxed text-[#CBD3CA]">
                   Q8371 Junín de los Andes
                   <br />
                   Neuquén, Argentina
@@ -60,28 +59,28 @@ const Footer = () => {
               </div>
 
               <a
-                href="https://www.google.com/maps/search/?api=1&query=Junín+de+los+Andes+Neuquén"
+                href="https://www.google.com/maps/search/?api=1&query=Jun%C3%ADn+de+los+Andes+Neuqu%C3%A9n"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 hover:text-[#24A35A] transition-colors"
+                className="flex items-center gap-3 text-[#CBD3CA] transition-colors hover:text-white"
               >
-                <Navigation className="w-4 h-4 text-[#24A35A]" />
-                <span>Cómo llegar</span>
+                <Navigation className="h-4 w-4 shrink-0 text-[#AAB7A6]" />
+                <span>Ver ubicación</span>
               </a>
 
               <a
                 href="tel:+542944682812"
-                className="flex items-center gap-3 font-medium hover:text-[#24A35A] transition-colors"
+                className="flex items-center gap-3 text-[#CBD3CA] transition-colors hover:text-white"
               >
-                <Phone className="w-4 h-4 text-[#24A35A]" />
+                <Phone className="h-4 w-4 shrink-0 text-[#AAB7A6]" />
                 <span>+54 294 468-2812</span>
               </a>
             </div>
 
-            <div className="mt-6 inline-flex items-center gap-2 px-3 py-1.5 border border-[#24A35A]/30 rounded-full">
-              <span className="w-2 h-2 rounded-full bg-[#24A35A] animate-pulse" />
-              <span className="text-[#24A35A] text-[11px] font-semibold tracking-wide">
-                DISPONIBILIDAD 24/7
+            <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-[#526655] bg-[#2C3B31] px-3.5 py-2">
+              <span className="h-2 w-2 rounded-full bg-[#AAB7A6]" />
+              <span className="text-xs font-medium text-[#C8D1C7]">
+                Atención personalizada
               </span>
             </div>
           </div>
@@ -89,16 +88,15 @@ const Footer = () => {
       </div>
 
       {/* BARRA INFERIOR */}
-      <div className="border-t border-slate-800/60">
-        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col sm:flex-row items-center justify-around gap-2 text-center">
-            <p className="text-[11px] uppercase tracking-widest text-slate-500">
-              © 2025 Epulen Seguridad · Ingeniería en Protección
-            </p>
-            <p className="text-[10px] text-slate-500">
-              Diseño y desarrollo · Rolando Duarte
-            </p>
-          </div>
+      <div className="border-t border-[#35463A]">
+        <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-2 px-5 py-6 text-center sm:flex-row sm:px-8 lg:px-12">
+          <p className="text-[11px] text-[#8FA08F]">
+            © {year} Epulén Seguridad Industrial. Todos los derechos reservados.
+          </p>
+
+          <p className="text-[11px] text-[#7F917F]">
+            Diseño y desarrollo · Rolando Duarte
+          </p>
         </div>
       </div>
     </footer>

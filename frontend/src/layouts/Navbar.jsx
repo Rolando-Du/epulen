@@ -1,6 +1,5 @@
-// src/components/Navbar.jsx (o donde lo tengas)
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import LogoEpulen from "../assets/epulen.png";
 
 const Navbar = () => {
@@ -10,6 +9,7 @@ const Navbar = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(
     localStorage.getItem("admin_auth") === "true"
   );
+
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
@@ -23,7 +23,6 @@ const Navbar = () => {
     return () => window.removeEventListener("storage", checkAuth);
   }, [location]);
 
-  // ✅ En vez de useEffect para cerrar menú, lo cerramos al hacer click o logout
   const closeMobileMenu = () => setMobileOpen(false);
 
   const handleLogout = () => {
@@ -38,116 +37,181 @@ const Navbar = () => {
       { to: "/", label: "Inicio" },
       { to: "/productos", label: "Productos" },
     ];
-    if (isAuthenticated) base.push({ to: "/admin", label: "Panel" });
+
+    if (isAuthenticated) {
+      base.push({ to: "/admin", label: "Panel" });
+    }
+
     return base;
   }, [isAuthenticated]);
 
-  const linkClass = (to) =>
-    [
-      "text-[11px] font-black uppercase tracking-[0.2em] transition-colors",
-      location.pathname === to
-        ? "text-[#24A35A]"
-        : "text-slate-400 hover:text-white",
-    ].join(" ");
+  const isActive = (to) => {
+    if (to === "/") return location.pathname === "/";
+    return location.pathname.startsWith(to);
+  };
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-slate-800 bg-[#020617]/80 backdrop-blur-md">
-      <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="h-16 sm:h-18 lg:h-20 flex items-center justify-between">
-          {/* LOGO E IDENTIDAD */}
-          <Link to="/" className="flex items-center group gap-3">
-            <div className="relative flex items-center">
-              <div className="absolute -inset-3 bg-[#24A35A] rounded-full blur-2xl opacity-0 group-hover:opacity-15 transition duration-700" />
-              <div className="relative transform transition-transform duration-500 group-hover:-translate-y-0.5">
-                <img
-                  src={LogoEpulen}
-                  alt="Epulen Seguridad Industrial"
-                  className="w-20 h-10 sm:w-24 sm:h-12 lg:w-28 lg:h-14 object-contain drop-shadow-2xl"
-                />
-              </div>
+    <nav className="sticky top-0 z-50 border-b border-[#D7DDD4] bg-[#F4F2EC]/92 backdrop-blur-xl">
+      <div className="mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-12">
+        <div className="flex h-18 items-center justify-between sm:h-20">
+          {/* LOGO / MARCA */}
+          <Link
+            to="/"
+            onClick={closeMobileMenu}
+            className="group flex items-center gap-3"
+          >
+            <div className="flex h-11 items-center rounded-xl bg-[#FCFBF8] px-2.5 ring-1 ring-[#D8DDD4] transition-all duration-300 group-hover:ring-[#A9B4A6]">
+              <img
+                src={LogoEpulen}
+                alt="Epulén Seguridad Industrial"
+                className="h-8 w-auto object-contain sm:h-9"
+              />
             </div>
 
-            <div className="h-8 w-px bg-linear-to-b from-transparent via-slate-700 to-transparent hidden sm:block" />
-
-            <div className="hidden sm:flex flex-col">
-              <span className="text-[#24A35A] text-[10px] sm:text-[11px] font-black uppercase tracking-[0.28em] leading-none mb-1">
-                Seguridad e Higiene
+            <div className="hidden sm:flex sm:flex-col">
+              <span className="text-[11px] font-semibold tracking-[0.08em] text-[#405A47]">
+                Epulén
               </span>
-              <span className="text-slate-400 text-[9px] sm:text-[10px] font-light uppercase tracking-[0.15em] group-hover:text-slate-200 transition-colors duration-500">
-                Industrial
+
+              <span className="mt-0.5 text-[10px] tracking-[0.08em] text-[#7C857D]">
+                Seguridad Industrial
               </span>
             </div>
           </Link>
 
-          {/* DESKTOP MENU */}
-          <div className="hidden md:flex items-center gap-8">
-            {links.map((l) => (
-              <Link key={l.to} to={l.to} className={linkClass(l.to)}>
-                {l.label}
-              </Link>
-            ))}
+          {/* MENÚ DESKTOP */}
+          <div className="hidden items-center gap-2 md:flex">
+            <div className="flex items-center gap-1 rounded-full border border-[#D8DDD4] bg-[#FCFBF8]/80 p-1">
+              {links.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={[
+                    "rounded-full px-4 py-2 text-sm font-medium transition-all duration-200",
+                    isActive(link.to)
+                      ? "bg-[#E5EAE2] text-[#405A47]"
+                      : "text-[#687168] hover:bg-[#F0F2ED] hover:text-[#243128]",
+                  ].join(" ")}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
 
             {isAuthenticated && (
               <button
                 onClick={handleLogout}
-                className="group flex items-center gap-2 bg-red-500/10 hover:bg-red-500 px-3 py-2 rounded-xl transition-all border border-red-500/20"
+                className="ml-2 inline-flex items-center gap-2 rounded-full border border-[#E4D0CB] bg-[#F8EFEC] px-4 py-2.5 text-sm font-medium text-[#9A5D51] transition-colors hover:bg-[#F1E2DE] hover:text-[#7F493F]"
               >
-                <span className="text-red-500 group-hover:text-white text-[10px] font-black uppercase tracking-widest">
-                  Salir
-                </span>
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.8"
+                    d="M15 12H3m0 0 4-4m-4 4 4 4m5-13h5a2 2 0 012 2v14a2 2 0 01-2 2h-5"
+                  />
+                </svg>
+
+                Salir
               </button>
             )}
           </div>
 
-          {/* MOBILE BUTTON */}
+          {/* BOTÓN MOBILE */}
           <button
+            type="button"
             onClick={() => setMobileOpen((v) => !v)}
-            className="md:hidden inline-flex items-center justify-center rounded-xl border border-slate-800 bg-slate-900/30 px-3 py-2 text-slate-200"
-            aria-label="Abrir menú"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[#D6DCD3] bg-[#FCFBF8] text-[#405A47] transition-colors hover:bg-[#EEF1EA] md:hidden"
+            aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
             aria-expanded={mobileOpen}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M4 7h16M4 12h16M4 17h16"
+            {mobileOpen ? (
+              <svg
+                className="h-5 w-5"
+                fill="none"
                 stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.8"
+                  d="M6 6l12 12M18 6 6 18"
+                />
+              </svg>
+            ) : (
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.8"
+                  d="M4 7h16M4 12h16M4 17h16"
+                />
+              </svg>
+            )}
           </button>
         </div>
 
-        {/* MOBILE MENU */}
+        {/* MENÚ MOBILE */}
         {mobileOpen && (
-          <div className="md:hidden pb-4">
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/30 backdrop-blur-md p-3">
-              <div className="flex flex-col">
-                {links.map((l) => (
+          <div className="pb-4 md:hidden">
+            <div className="rounded-2xl border border-[#D8DDD4] bg-[#FCFBF8] p-2 shadow-[0_18px_45px_rgba(36,49,40,0.08)]">
+              <div className="flex flex-col gap-1">
+                {links.map((link) => (
                   <Link
-                    key={l.to}
-                    to={l.to}
+                    key={link.to}
+                    to={link.to}
                     onClick={closeMobileMenu}
                     className={[
-                      "px-3 py-3 rounded-xl",
-                      location.pathname === l.to
-                        ? "bg-[#24A35A]/10 text-[#24A35A]"
-                        : "text-slate-200 hover:bg-white/5",
-                      "text-[11px] font-black uppercase tracking-[0.2em]",
+                      "flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition-colors",
+                      isActive(link.to)
+                        ? "bg-[#E5EAE2] text-[#405A47]"
+                        : "text-[#5F6A61] hover:bg-[#F1F3EE] hover:text-[#243128]",
                     ].join(" ")}
                   >
-                    {l.label}
+                    <span>{link.label}</span>
+
+                    {isActive(link.to) && (
+                      <span className="h-2 w-2 rounded-full bg-[#788873]" />
+                    )}
                   </Link>
                 ))}
 
                 {isAuthenticated && (
-                  <button
-                    onClick={handleLogout}
-                    className="mt-2 px-3 py-3 rounded-xl text-left bg-red-500/10 hover:bg-red-500 transition-all border border-red-500/20"
-                  >
-                    <span className="text-red-500 hover:text-white text-[11px] font-black uppercase tracking-widest">
-                      Salir
-                    </span>
-                  </button>
+                  <>
+                    <div className="my-1 h-px bg-[#E1E5DE]" />
+
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-2 rounded-xl px-4 py-3 text-left text-sm font-medium text-[#9A5D51] transition-colors hover:bg-[#F7ECE9]"
+                    >
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="1.8"
+                          d="M15 12H3m0 0 4-4m-4 4 4 4m5-13h5a2 2 0 012 2v14a2 2 0 01-2 2h-5"
+                        />
+                      </svg>
+
+                      Cerrar sesión
+                    </button>
+                  </>
                 )}
               </div>
             </div>

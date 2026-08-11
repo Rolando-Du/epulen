@@ -1,8 +1,31 @@
 import express from "express";
-import { nuevoMensaje } from "../controllers/contactController.js";
+import { rateLimit } from "express-rate-limit";
+
+import {
+  nuevoMensaje,
+} from "../controllers/contactController.js";
 
 const router = express.Router();
 
-router.post("/", nuevoMensaje);
+const contactoLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+
+  limit: 5,
+
+  standardHeaders: "draft-8",
+
+  legacyHeaders: false,
+
+  message: {
+    success: false,
+    msg: "Realizaste demasiadas consultas. Intentá nuevamente en unos minutos.",
+  },
+});
+
+router.post(
+  "/",
+  contactoLimiter,
+  nuevoMensaje
+);
 
 export default router;

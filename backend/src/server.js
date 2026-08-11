@@ -1,77 +1,263 @@
+import "dotenv/config";
+
 import express from "express";
-import dotenv from "dotenv";
 import cors from "cors";
+import helmet from "helmet";
 import path from "path";
 import fs from "fs";
-import { fileURLToPath } from "url";
+
 import conectarDB from "./config/db.js";
 
-// Importación de Rutas
+// Rutas
 import contactRoutes from "./routes/contact.js";
 import productRoutes from "./routes/productRoutes.js";
 
-dotenv.config();
+// ==============================
+// BASE DE DATOS
+// ==============================
+
 conectarDB();
+
+// ==============================
+// APP
+// ==============================
 
 const app = express();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+/*
+  Render trabaja detrás de un proxy.
 
-// --- CONFIGURACIÓN DE MIDDLEWARES ---
+  Esto es importante especialmente cuando agreguemos
+  express-rate-limit al formulario de contacto,
+  para poder identificar correctamente la IP.
+*/
+app.set("trust proxy", 1);
 
-// Configuración de CORS optimizada para Vercel
-app.use(cors({
-  origin: "*", // Permite peticiones desde cualquier origen (ideal para pruebas con Vercel)
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
+// ==============================
+// SEGURIDAD
+// ==============================
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+/*
+  crossOriginResourcePolicy: "cross-origin"
 
-// --- CONFIGURACIÓN DE CARPETA ESTÁTICA ---
-const uploadsPath = path.join(process.cwd(), "uploads");
+  Es importante porque las imágenes están en el backend
+  y el frontend está desplegado en otro dominio (Vercel).
+*/
+app.use(
+  helmet({
+    crossOriginResourcePolicy: {
+      policy: "cross-origin",
+    },
+  })
+);
+
+// ==============================
+// CORS
+// ==============================
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "https://epulen.vercel.app",
+
+  // Si en producción configuramos FRONTEND_URL,
+  // también se agrega automáticamente.
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      /*
+        Permitir requests sin origin:
+        Postman, Thunder Client, Render health checks, etc.
+      */
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      console.warn(`⚠️ CORS bloqueó el origen: ${origin}`);
+
+      return callback(
+        new Error("Origen no permitido por CORS")
+      );
+    },
+
+    methods: [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE",
+      "OPTIONS",
+    ],
+
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+    ],
+
+    credentials: false,
+  })
+);
+
+// ==============================
+// BODY PARSERS
+// ==============================
+
+app.use(
+  express.json({
+    limit: "100kb",
+  })
+);
+
+app.use(
+  express.urlencoded({
+    extended: true,
+    limit: "100kb",
+  })
+);
+
+// ==============================
+// UPLOADS
+// ==============================
+
+const uploadsPath = path.join(
+  process.cwd(),
+  "uploads"
+);
 
 if (!fs.existsSync(uploadsPath)) {
-  fs.mkdirSync(uploadsPath, { recursive: true });
+  fs.mkdirSync(uploadsPath, {
+    recursive: true,
+  });
 }
 
-app.use("/uploads", express.static(uploadsPath));
+app.use(
+  "/uploads",
+  express.static(uploadsPath)
+);
 
-// --- RUTAS API ---
-app.use("/api/contacto", contactRoutes);
-app.use("/api/productos", productRoutes);
+// ==============================
+// RUTAS API
+// ==============================
 
-// RUTA LOGIN
+app.use(
+  "/api/contacto",
+  contactRoutes
+);
+
+app.use(
+  "/api/productos",
+  productRoutes
+);
+
+// ==============================
+// LOGIN ADMIN
+// ==============================
+
 app.post("/api/login", (req, res) => {
   const { password } = req.body;
-  
-  // Verificación de seguridad básica
-  if (!password) {
-    return res.status(400).json({ success: false, message: "Contraseña requerida" });
-  }
 
-  if (password === process.env.ADMIN_PASSWORD) {
-    return res.status(200).json({ 
-      success: true, 
-      message: "Autenticación exitosa" 
+  if (!password) {
+    return res.status(400).json({
+      success: false,
+      message: "Contraseña requerida",
     });
   }
-  
-  return res.status(401).json({ 
-    success: false, 
-    message: "Contraseña incorrecta" 
+
+  if (
+    password === process.env.ADMIN_PASSWORD
+  ) {
+    return res.status(200).json({
+      success: true,
+      message: "Autenticación exitosa",
+    });
+  }
+
+  return res.status(401).json({
+    success: false,
+    message: "Contraseña incorrecta",
   });
 });
 
-// Ruta de salud (Health Check) para Render
+// ==============================
+// HEALTH CHECK
+// ==============================
+
 app.get("/health", (req, res) => {
-  res.status(200).send("Server is running");
+  return res.status(200).json({
+    success: true,
+    message: "Server is running",
+    environment:
+      process.env.NODE_ENV || "development",
+  });
 });
 
-const PORT = process.env.PORT || 5000;
+// ==============================
+// 404 API
+// ==============================
+
+app.use("/api", (req, res) => {
+  return res.status(404).json({
+    success: false,
+    message: "Ruta API no encontrada",
+  });
+});
+
+// ==============================
+// ERROR HANDLER
+// ==============================
+
+app.use((err, req, res, next) => {
+  console.error("❌ Error del servidor:", err);
+
+  if (
+    err.message ===
+    "Origen no permitido por CORS"
+  ) {
+    return res.status(403).json({
+      success: false,
+      message:
+        "El origen de la solicitud no está permitido.",
+    });
+  }
+
+  return res.status(500).json({
+    success: false,
+    message: "Error interno del servidor",
+  });
+});
+
+// ==============================
+// SERVER
+// ==============================
+
+const PORT =
+  process.env.PORT || 5000;
+
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor operativo en puerto ${PORT}`);
-  console.log(`🖼️ Carpeta de imágenes: ${uploadsPath}`);
+  console.log("");
+  console.log(
+    "🌿 EPULÉN SEGURIDAD INDUSTRIAL"
+  );
+
+  console.log(
+    `🚀 Servidor operativo en puerto ${PORT}`
+  );
+
+  console.log(
+    `🖼️ Carpeta de imágenes: ${uploadsPath}`
+  );
+
+  console.log(
+    `🌐 Entorno: ${
+      process.env.NODE_ENV || "development"
+    }`
+  );
+
+  console.log("");
 });

@@ -6,6 +6,7 @@ import ContactForm from "../components/ContactForm";
 
 const Home = () => {
   const navigate = useNavigate();
+
   const [productosDestacados, setProductosDestacados] = useState([]);
   const [productosFiltrados, setProductosFiltrados] = useState([]);
   const [categoriaActiva, setCategoriaActiva] = useState("Todos");
@@ -31,10 +32,14 @@ const Home = () => {
       try {
         const respuesta = await fetch(`${API_URL}/api/productos`);
         const resultado = await respuesta.json();
+
         const destacados = resultado.filter(
           (p) =>
-            p.destacado === true || p.destacado === "true" || p.destacado === 1
+            p.destacado === true ||
+            p.destacado === "true" ||
+            p.destacado === 1
         );
+
         setProductosDestacados(destacados);
         setProductosFiltrados(destacados);
       } catch (error) {
@@ -43,123 +48,141 @@ const Home = () => {
         setCargando(false);
       }
     };
+
     obtenerProductos();
   }, [API_URL]);
 
   const filtrarPorCategoria = (cat) => {
     setCategoriaActiva(cat);
+
     if (cat === "Todos") {
       setProductosFiltrados(productosDestacados);
-    } else {
-      const filtrados = productosDestacados.filter(
-        (p) => p.categoria?.toLowerCase() === cat.toLowerCase()
-      );
-      setProductosFiltrados(filtrados);
+      return;
     }
+
+    const filtrados = productosDestacados.filter(
+      (p) => p.categoria?.toLowerCase() === cat.toLowerCase()
+    );
+
+    setProductosFiltrados(filtrados);
   };
 
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-200 overflow-x-hidden">
+    <div className="min-h-screen bg-[#F4F2EC] text-[#243128] overflow-x-hidden">
       <Hero />
 
-      {/* SECCIÓN CATEGORÍAS - Max-width reducido y padding aumentado */}
-      <section className="max-w-6xl mx-auto py-24 px-8 md:px-12">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
-          <div>
-            <p className="text-[#24A35A] font-black text-[10px] uppercase tracking-[0.4em] mb-3">
-              Especialidades
-            </p>
-            <h2 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter">
-              Productos <span className="text-[#E67E22]">Destacados</span>
-            </h2>
-          </div>
+      {/* PRODUCTOS DESTACADOS */}
+      <section className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-20 lg:py-28">
+        <div className="max-w-3xl mb-12">
+          <p className="text-[#788873] font-semibold text-xs uppercase tracking-[0.22em] mb-3">
+            Nuestro catálogo
+          </p>
+
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-[-0.035em] text-[#243128]">
+            Productos seleccionados para trabajar con{" "}
+            <span className="text-[#9A6750]">seguridad</span>
+          </h2>
+
+          <p className="mt-5 max-w-2xl text-[#687168] leading-relaxed">
+            Equipamiento e indumentaria pensados para acompañar el trabajo
+            diario con protección, comodidad y confianza.
+          </p>
         </div>
 
-        {/* Grid de categorías optimizado para no desbordar */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
-          {categorias
-            .filter((c) => c !== "Todos")
-            .map((cat) => (
+        {/* CATEGORÍAS */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          {categorias.map((cat) => {
+            const activa = categoriaActiva === cat;
+
+            return (
               <button
                 key={cat}
                 onClick={() => filtrarPorCategoria(cat)}
-                className={`group relative p-5 md:p-6 rounded-[22px] border transition-all duration-500 overflow-hidden ${
-                  categoriaActiva === cat
-                    ? "bg-[#24A35A] border-[#24A35A] shadow-2xl shadow-[#24A35A]/20"
-                    : "bg-slate-900/40 border-slate-800 hover:border-[#24A35A]/50"
-                }`}
+                className={[
+                  "min-h-17.5 px-5 py-4 rounded-2xl border text-sm font-medium",
+                  "transition-all duration-300",
+                  activa
+                    ? "bg-[#405A47] border-[#405A47] text-white shadow-[0_10px_30px_rgba(64,90,71,0.16)]"
+                    : "bg-[#FCFBF8] border-[#D9DDD5] text-[#59645B] hover:border-[#AAB5A7] hover:bg-white hover:text-[#243128]",
+                ].join(" ")}
               >
-                <span
-                  className={`text-[10px] font-black uppercase tracking-widest relative z-10 ${
-                    categoriaActiva === cat
-                      ? "text-white"
-                      : "text-slate-400 group-hover:text-white"
-                  }`}
-                >
-                  {cat}
-                </span>
-                <div className="absolute -bottom-2 -right-2 text-white/5 font-black text-3xl italic group-hover:scale-110 transition-transform">
-                  {cat.substring(0, 6)}
-                </div>
+                {cat}
               </button>
-            ))}
+            );
+          })}
         </div>
       </section>
 
-      {/* SECCIÓN CATÁLOGO - Espaciado lateral consistente */}
+      {/* CATÁLOGO */}
       <main
         id="catalogo"
-        className="max-w-6xl mx-auto py-10 pb-32 px-8 md:px-12 border-t border-slate-900/50"
+        className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 pb-28"
       >
-        {cargando ? (
-          <div className="text-center py-32">
-            <div className="inline-block animate-spin rounded-full h-10 w-10 border-t-2 border-[#24A35A] border-r-2 mb-4"></div>
-            <p className="text-slate-500 font-black tracking-[0.3em] text-[10px] uppercase">
-              Sincronizando...
-            </p>
-          </div>
-        ) : (
-          <div className="pt-12">
-            {productosFiltrados.length === 0 ? (
-              <div className="text-center py-24 border border-dashed border-slate-800 rounded-4xl">
-                <p className="text-slate-500 uppercase text-[10px] font-black tracking-widest">
-                  No hay productos destacados en "{categoriaActiva}"
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-12">
-                {productosFiltrados.slice(0, visibleCount).map((prod) => (
-                  <ProductCard
-                    key={prod._id}
-                    id={prod._id}
-                    nombre={prod.nombre}
-                    categoria={prod.categoria}
-                    precio={prod.precio}
-                    imagen={
-                      prod.imagenUrl || (prod.imagenes && prod.imagenes[0])
-                    }
-                    tallas={prod.tallas}
-                  />
-                ))}
-              </div>
-            )}
+        <div className="border-t border-[#D8DDD4] pt-14">
+          {cargando ? (
+            <div className="text-center py-28">
+              <div className="inline-block h-9 w-9 rounded-full border-[3px] border-[#CDD4C8] border-t-[#405A47] animate-spin" />
 
-            <div className="mt-28 text-center relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-900"></div>
-              </div>
-              <button
-                onClick={() => navigate("/productos")}
-                className="relative z-10 px-12 py-5 bg-[#020617] border border-[#24A35A] hover:bg-[#24A35A] rounded-full text-[10px] font-black uppercase tracking-[0.3em] text-white transition-all active:scale-95 shadow-xl shadow-[#24A35A]/10"
-              >
-                Ver Todo el Catálogo
-              </button>
+              <p className="mt-4 text-[#788078] text-xs tracking-[0.16em] uppercase font-medium">
+                Cargando productos...
+              </p>
             </div>
-          </div>
-        )}
+          ) : (
+            <>
+              {productosFiltrados.length === 0 ? (
+                <div className="text-center py-20 bg-[#FAF9F5] border border-dashed border-[#CCD3C8] rounded-3xl">
+                  <p className="text-[#788078] text-sm">
+                    No hay productos destacados en "{categoriaActiva}".
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7 lg:gap-8">
+                  {productosFiltrados
+                    .slice(0, visibleCount)
+                    .map((prod) => (
+                      <ProductCard
+                        key={prod._id}
+                        id={prod._id}
+                        nombre={prod.nombre}
+                        categoria={prod.categoria}
+                        precio={prod.precio}
+                        imagen={
+                          prod.imagenUrl ||
+                          (prod.imagenes && prod.imagenes[0])
+                        }
+                        tallas={prod.tallas}
+                      />
+                    ))}
+                </div>
+              )}
 
-        {/* Sección de contacto con aire suficiente */}
-        <div className="mt-48 px-2">
+              <div className="mt-16 flex justify-center">
+                <button
+                  onClick={() => navigate("/productos")}
+                  className="
+                    px-8 py-4
+                    bg-[#243128]
+                    hover:bg-[#405A47]
+                    text-white
+                    rounded-full
+                    text-sm
+                    font-medium
+                    transition-all
+                    duration-300
+                    hover:-translate-y-0.5
+                    shadow-[0_10px_30px_rgba(36,49,40,0.12)]
+                  "
+                >
+                  Ver catálogo completo
+                  <span className="ml-2">→</span>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* CONTACTO */}
+        <div className="mt-32 lg:mt-40">
           <ContactForm />
         </div>
       </main>

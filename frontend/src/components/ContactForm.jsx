@@ -14,182 +14,260 @@ const ContactForm = () => {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  // Configuración de EmailJS
   const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
   const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
   const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
   const emailjsReady = useMemo(() => {
     return Boolean(
-      EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID && EMAILJS_PUBLIC_KEY
+      EMAILJS_SERVICE_ID &&
+        EMAILJS_TEMPLATE_ID &&
+        EMAILJS_PUBLIC_KEY
     );
-  }, [EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY]);
+  }, [
+    EMAILJS_SERVICE_ID,
+    EMAILJS_TEMPLATE_ID,
+    EMAILJS_PUBLIC_KEY,
+  ]);
 
-  const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  const swalBase = {
+    background: "#FCFBF8",
+    color: "#243128",
+    confirmButtonColor: "#405A47",
   };
 
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!emailjsReady) {
-      Swal.fire({
+      await Swal.fire({
+        ...swalBase,
         icon: "error",
-        title: "Error de Configuración",
-        text: "Las credenciales de envío no están listas en el entorno.",
-        background: "#020617",
-        color: "#fff",
-        confirmButtonColor: "#E67E22",
+        title: "Configuración incompleta",
+        text: "Las credenciales de EmailJS no están configuradas correctamente.",
       });
       return;
     }
 
+    if (isLoading) return;
+
     setIsLoading(true);
 
-    emailjs
-      .sendForm(
+    try {
+      await emailjs.sendForm(
         EMAILJS_SERVICE_ID,
         EMAILJS_TEMPLATE_ID,
         form.current,
         EMAILJS_PUBLIC_KEY
-      )
-      .then(
-        () => {
-          setIsLoading(false);
-          Swal.fire({
-            icon: "success",
-            title: "¡Solicitud Enviada!",
-            text: "Un asesor técnico se pondrá en contacto a la brevedad.",
-            background: "#020617",
-            color: "#fff",
-            confirmButtonColor: "#22c55e",
-            timer: 3500,
-          });
-          setFormData({ nombre: "", email: "", telefono: "", mensaje: "" });
-        },
-        (error) => {
-          setIsLoading(false);
-          console.error(error);
-          Swal.fire({
-            icon: "error",
-            title: "Error de Envío",
-            text: "No se pudo procesar la solicitud. Reintente más tarde.",
-            background: "#020617",
-            color: "#fff",
-            confirmButtonColor: "#ef4444",
-          });
-        }
       );
+
+      await Swal.fire({
+        ...swalBase,
+        icon: "success",
+        title: "Solicitud enviada",
+        text: "Recibimos tu consulta. Nos pondremos en contacto a la brevedad.",
+        timer: 3200,
+        showConfirmButton: false,
+      });
+
+      setFormData({
+        nombre: "",
+        email: "",
+        telefono: "",
+        mensaje: "",
+      });
+
+      form.current?.reset();
+    } catch (error) {
+      console.error("Error enviando formulario:", error);
+
+      await Swal.fire({
+        ...swalBase,
+        icon: "error",
+        title: "No se pudo enviar",
+        text: "Intentá nuevamente en unos minutos o contactanos por WhatsApp.",
+        confirmButtonColor: "#9A5D51",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const inputBase =
-    "w-full rounded-2xl bg-slate-900/50 border border-slate-800 text-white outline-none " +
-    "px-4 py-3.5 text-sm placeholder:text-slate-600 transition-all " +
-    "focus:border-[#E67E22] focus:ring-1 focus:ring-[#E67E22]/20";
+    "w-full rounded-xl bg-[#F8F7F3] border border-[#D7DDD4] text-[#243128] outline-none " +
+    "px-4 py-3.5 text-sm placeholder:text-[#A0A7A0] transition-all " +
+    "focus:border-[#788873] focus:ring-4 focus:ring-[#788873]/10 disabled:opacity-60";
+
+  const labelBase =
+    "block text-sm font-medium text-[#526054] mb-2";
 
   return (
-    <section className="relative overflow-hidden rounded-[2.5rem] border border-slate-800/60 bg-[#020617] px-6 lg:px-10 py-12 my-14 shadow-2xl">
-      {/* Decoración Ambiental */}
-      <div className="absolute -top-10 -right-10 w-64 h-64 bg-[#E67E22]/5 blur-[80px] pointer-events-none" />
-      <div className="absolute -bottom-10 -left-10 w-64 h-64 bg-[#4ade80]/5 blur-[80px] pointer-events-none" />
+    <section
+      id="contacto"
+      className="relative overflow-hidden rounded-4xl border border-[#D8DDD4] bg-[#FCFBF8] px-5 py-10 shadow-[0_22px_65px_rgba(36,49,40,0.06)] sm:px-8 lg:px-10 lg:py-12"
+    >
+      {/* Decoración muy sutil */}
+      <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#AAB7A6]/15 blur-[90px]" />
+      <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-[#C6AD98]/15 blur-[90px]" />
 
-      <div className="mx-auto w-full max-w-4xl relative z-10">
-        {/* Encabezado */}
-        <div className="text-center mb-10">
-          <h2 className="text-3xl lg:text-4xl font-black text-white uppercase tracking-tight">
-            SOLICITAR <span className="text-[#E67E22]">COTIZACIÓN</span>
+      <div className="relative z-10 mx-auto w-full max-w-4xl">
+        {/* ENCABEZADO */}
+        <div className="mb-9 max-w-2xl">
+          <p className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-[#788873]">
+            Contacto
+          </p>
+
+          <h2 className="text-3xl font-semibold tracking-[-0.035em] text-[#243128] sm:text-4xl">
+            Contanos qué necesitás.
           </h2>
-          <div className="h-1 w-16 bg-[#E67E22] mx-auto mt-4 rounded-full" />
-          <p className="text-slate-400 mt-4 text-sm sm:text-base">
-            Suministros Técnicos Certificados para Minería y Petróleo.
+
+          <p className="mt-4 text-sm leading-relaxed text-[#6D776F] sm:text-base">
+            Enviá tu consulta y te ayudamos a encontrar el equipamiento o la
+            solución de seguridad más adecuada para tu actividad.
           </p>
         </div>
 
         <form
           ref={form}
           onSubmit={handleSubmit}
-          className="grid grid-cols-1 md:grid-cols-2 gap-5"
+          className="grid grid-cols-1 gap-5 md:grid-cols-2"
         >
-          {/* Campo: Nombre */}
+          {/* NOMBRE */}
           <div>
-            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 ml-1">
-              Nombre y Apellido
+            <label htmlFor="nombre" className={labelBase}>
+              Nombre y apellido
             </label>
+
             <input
+              id="nombre"
               type="text"
               name="nombre"
-              placeholder="Ej: Juan Pérez"
+              placeholder="Ej. Juan Pérez"
               className={inputBase}
               onChange={handleChange}
               value={formData.nombre}
+              disabled={isLoading}
+              autoComplete="name"
               required
             />
           </div>
 
-          {/* Campo: Email */}
+          {/* EMAIL */}
           <div>
-            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 ml-1">
-              Email Corporativo
+            <label htmlFor="email" className={labelBase}>
+              Email
             </label>
+
             <input
+              id="email"
               type="email"
               name="email"
-              placeholder="email@empresa.com"
+              placeholder="nombre@empresa.com"
               className={inputBase}
               onChange={handleChange}
               value={formData.email}
+              disabled={isLoading}
+              autoComplete="email"
               required
             />
           </div>
 
-          {/* Campo: Teléfono */}
+          {/* TELÉFONO */}
           <div className="md:col-span-2">
-            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 ml-1">
-              Teléfono de Contacto
+            <label htmlFor="telefono" className={labelBase}>
+              Teléfono
             </label>
+
             <input
-              type="text"
+              id="telefono"
+              type="tel"
               name="telefono"
               placeholder="WhatsApp o teléfono con código de área"
               className={inputBase}
               onChange={handleChange}
               value={formData.telefono}
+              disabled={isLoading}
+              autoComplete="tel"
               required
             />
           </div>
 
-          {/* Campo: Mensaje */}
+          {/* MENSAJE */}
           <div className="md:col-span-2">
-            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 ml-1">
-              Requerimiento Técnico
+            <label htmlFor="mensaje" className={labelBase}>
+              Consulta
             </label>
+
             <textarea
+              id="mensaje"
               name="mensaje"
-              placeholder="Detalla los productos y cantidades que necesitas..."
-              className={`${inputBase} min-h-32 resize-none`}
+              placeholder="Contanos qué productos, cantidades o servicio necesitás..."
+              className={`${inputBase} min-h-36 resize-y`}
               onChange={handleChange}
               value={formData.mensaje}
+              disabled={isLoading}
               required
             />
           </div>
 
-          {/* Botón con Efecto de Barrido y Borde Neón */}
-          <div className="md:col-span-2 flex flex-col items-center gap-4 pt-4">
+          {/* FOOTER FORM */}
+          <div className="md:col-span-2 flex flex-col gap-4 border-t border-[#E0E4DD] pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="max-w-md text-xs leading-relaxed text-[#8A938B]">
+              Usaremos estos datos únicamente para responder tu consulta.
+            </p>
+
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full sm:w-auto inline-flex items-center justify-center rounded-2xl bg-slate-950 px-12 py-4.5 font-black uppercase tracking-[0.2em] text-[11px] border-2 border-[#4ade80] shadow-[0_0_15px_rgba(74,222,128,0.3)] transition-all active:scale-95 disabled:opacity-50 overflow-hidden"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#405A47] px-7 py-3.5 text-sm font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#334A3A] hover:shadow-[0_12px_28px_rgba(64,90,71,0.16)] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
             >
-              {/* Texto con efecto de barrido */}
-              <span className="relative z-10 text-white transition-colors duration-500 group-hover:text-transparent bg-clip-text bg-linear-to-r from-[#E67E22] from-50% to-white to-50% bg-size-[200%_100%] bg-position-[100%_0] group-hover:bg-position-[0%_0]">
-                {isLoading ? "Procesando..." : "Enviar Solicitud"}
-              </span>
-
-              {/* Capa de brillo al hover */}
-              <div className="absolute inset-0 bg-white/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              {isLoading ? (
+                <>
+                  <svg
+                    className="h-4 w-4 animate-spin"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.37 0 0 5.37 0 12h4z"
+                    />
+                  </svg>
+                  Enviando...
+                </>
+              ) : (
+                <>
+                  Enviar consulta
+                  <span aria-hidden="true">→</span>
+                </>
+              )}
             </button>
           </div>
         </form>
+
+        {!emailjsReady && (
+          <p className="mt-5 rounded-xl border border-[#E9D5D0] bg-[#F9EFEC] px-4 py-3 text-xs text-[#965C52]">
+            EmailJS no está configurado en este entorno.
+          </p>
+        )}
       </div>
     </section>
   );

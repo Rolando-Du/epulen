@@ -1,112 +1,130 @@
 import React from "react";
 
 const Hero = () => {
-  return (
-    <header className="relative py-16 md:py-28 px-4 sm:px-8 md:px-12 overflow-hidden bg-[#020617]">
-      {/* Fondo y Decoración Sólida */}
-      <div className="absolute inset-0 bg-[#E67E22]/5"></div>
-      <div className="absolute top-0 left-0 w-full h-px bg-[#E67E22]/30"></div>
+  const puntos = [
+    {
+      titulo: "Protección",
+      texto: "Elementos de seguridad para tareas exigentes.",
+    },
+    {
+      titulo: "Industria",
+      texto: "Soluciones para distintos entornos de trabajo.",
+    },
+    {
+      titulo: "Asesoramiento",
+      texto: "Acompañamiento para elegir el equipo adecuado.",
+    },
+  ];
 
-      {/* Contenedor Principal */}
-      <div className="max-w-6xl mx-auto relative z-10">
-        <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-          {/* Columna de Texto */}
-          <div className="lg:col-span-7 flex flex-col justify-center text-left">
-            {/* Badge de Certificación - Color Sólido */}
-            <div className="inline-flex items-center gap-3 w-fit px-4 py-2 rounded-full border border-[#E67E22]/30 bg-[#E67E22]/10 mb-8">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E67E22] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#E67E22]"></span>
-              </span>
-              <span className="text-[#E67E22] text-[10px] font-black tracking-[0.2em] uppercase">
-                Suministros Técnicos Certificados
+  return (
+    <header className="relative overflow-hidden bg-[#F4F2EC]">
+      {/* Decoración de fondo */}
+      <div className="pointer-events-none absolute -top-32 -left-32 h-105 w-105 rounded-full bg-[#AAB7A6]/20 blur-[120px]" />
+      <div className="pointer-events-none absolute -bottom-40 -right-24 h-105 w-105 rounded-full bg-[#C6AD98]/20 blur-[130px]" />
+
+      <div className="relative mx-auto max-w-7xl px-5 sm:px-8 lg:px-12 py-16 sm:py-20 lg:py-28">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+          {/* TEXTO */}
+          <div className="max-w-3xl">
+            <div className="mb-6 inline-flex items-center gap-2.5 rounded-full border border-[#CBD3C8] bg-[#FCFBF8]/85 px-4 py-2 backdrop-blur-sm">
+              <span className="h-2 w-2 rounded-full bg-[#788873]" />
+              <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#5E6D60]">
+                Seguridad industrial
               </span>
             </div>
 
-            {/* Título con Color Sólido */}
-            <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-white leading-[0.9] tracking-tighter mb-8">
-              EQUIPANDO TU <br />
-              <span className="text-[#E67E22]">INTEGRIDAD</span>
+            <h1 className="max-w-4xl text-4xl font-semibold leading-[1.02] tracking-[-0.045em] text-[#243128] sm:text-5xl md:text-6xl lg:text-7xl">
+              Protección para trabajar con{" "}
+              <span className="text-[#788873]">confianza.</span>
             </h1>
 
-            <div className="relative mb-10">
-              <p className="text-slate-400 max-w-lg text-base md:text-xl leading-relaxed border-l-4 border-[#E67E22] pl-6 py-1">
-                Especialistas en EPP de alto impacto para{" "}
-                <span className="text-white font-semibold">
-                  Minería y Petróleo
-                </span>
-                . Seguridad diseñada para entornos críticos de alto riesgo.
-              </p>
-            </div>
+            <p className="mt-6 max-w-2xl text-base leading-relaxed text-[#687168] sm:text-lg">
+              Equipamiento, indumentaria y elementos de protección personal
+              pensados para acompañar el trabajo diario en entornos industriales
+              y actividades de alta exigencia.
+            </p>
 
-            {/* Botones - Sin degradados */}
-            <div className="flex flex-wrap gap-4 md:gap-6">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <a
                 href="#catalogo"
-                className="bg-[#E67E22] hover:bg-[#d36d10] text-white px-8 md:px-10 py-4 md:py-5 rounded-2xl font-black transition-all duration-300 shadow-lg shadow-[#E67E22]/20 uppercase tracking-widest text-xs transform hover:-translate-y-1 text-center"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-[#405A47] px-7 py-3.5 text-sm font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#334A3A] hover:shadow-[0_12px_28px_rgba(64,90,71,0.16)]"
               >
-                Explorar Catálogo
+                Explorar catálogo
+                <span aria-hidden="true">→</span>
               </a>
-              <div className="flex items-center gap-4 px-6 py-4 rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-sm">
-                <div className="text-white font-black text-xs md:text-sm tracking-tighter uppercase">
-                  Normativa 2025
-                </div>
-                <div className="w-px h-4 bg-slate-700"></div>
-                <div className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">
-                  ANSI Z87.1
-                </div>
-              </div>
+
+              <a
+                href="#contacto"
+                className="inline-flex items-center justify-center rounded-full border border-[#C7CEC4] bg-[#FCFBF8] px-7 py-3.5 text-sm font-medium text-[#4A584D] transition-colors hover:border-[#9EAA9A] hover:bg-white"
+              >
+                Solicitar asesoramiento
+              </a>
             </div>
 
-            {/* Stats Compactos */}
-            <div className="mt-12 md:mt-16 flex gap-8 md:gap-12 border-t border-slate-800/50 pt-10">
-              {[
-                { val: "+500", lab: "Items" },
-                { val: "100%", lab: "Oficial" },
-                { val: "ARG", lab: "Industria" },
-              ].map((stat, i) => (
-                <div key={i} className="flex flex-col">
-                  <span className="text-white font-black text-xl md:text-2xl tracking-tighter">
-                    {stat.val}
-                  </span>
-                  <span className="text-slate-500 text-[9px] uppercase font-black tracking-[0.2em] mt-1">
-                    {stat.lab}
-                  </span>
+            {/* PUNTOS DE VALOR */}
+            <div className="mt-12 grid gap-3 sm:grid-cols-3">
+              {puntos.map((item) => (
+                <div
+                  key={item.titulo}
+                  className="rounded-2xl border border-[#D9DED5] bg-[#FCFBF8]/75 p-4"
+                >
+                  <p className="text-sm font-semibold text-[#405A47]">
+                    {item.titulo}
+                  </p>
+                  <p className="mt-1.5 text-xs leading-relaxed text-[#7A837B]">
+                    {item.texto}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Columna de Imagen */}
-          <div className="lg:col-span-5 relative hidden lg:block">
-            <div className="relative z-10 rounded-4xl overflow-hidden border border-slate-800 group transition-all duration-500 hover:border-[#E67E22]/50 shadow-2xl">
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-
+          {/* IMAGEN */}
+          <div className="relative">
+            <div className="relative overflow-hidden rounded-4xl border border-[#D7DDD4] bg-[#E7EAE3] shadow-[0_24px_70px_rgba(36,49,40,0.10)]">
               <img
                 src="https://imgs.search.brave.com/vIbC1jOSZ7YZvDhhdg-lTVhycIChWlovzo5-OuYQjnI/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9tZWRp/YS5nZXR0eWltYWdl/cy5jb20vaWQvNTA5/NDI1MjYyL2VzL2Zv/dG8vY2FsbGUtc29s/ZGFkb3IuanBnP3M9/NjEyeDYxMiZ3PTAm/az0yMCZjPXpHSVJo/VW5lYXRZN0ZVcFRi/WGFOSVN0UjUzeXhH/d05BRnNvelJmSktl/bzQ9"
-                alt="Seguridad Industrial Epulen"
-                className="w-full aspect-4/5 object-cover transition-transform duration-1000 group-hover:scale-105"
+                alt="Profesional utilizando equipamiento de seguridad industrial"
+                className="aspect-4/5 w-full object-cover"
               />
 
-              {/* Badge Flotante con el color unificado */}
-              <div className="absolute bottom-6 left-6 right-6 bg-[#020617]/95 border border-white/10 p-4 rounded-2xl flex items-center justify-between">
-                <div>
-                  <div className="text-[#E67E22] font-black text-lg tracking-tighter italic">
-                    MAX-GEAR
+              {/* Overlay suave */}
+              <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-[#243128]/45 via-transparent to-transparent" />
+
+              {/* Badge inferior */}
+              <div className="absolute bottom-4 left-4 right-4 rounded-2xl border border-white/30 bg-[#F8F6F0]/90 p-4 backdrop-blur-md sm:bottom-6 sm:left-6 sm:right-6">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-semibold text-[#2F3D33]">
+                      Epulén Seguridad Industrial
+                    </p>
+                    <p className="mt-1 text-xs text-[#6E796F]">
+                      Equipamiento y protección para el trabajo.
+                    </p>
                   </div>
-                  <div className="text-[#4ade80] text-[8px] uppercase tracking-widest font-bold">
-                    Protección Profesional
+
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#405A47] text-white">
+                    <svg
+                      className="h-5 w-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.8"
+                        d="M9 12.75 11.25 15 15 9.75M12 3l7 3v5c0 4.5-2.8 8.5-7 10-4.2-1.5-7-5.5-7-10V6l7-3z"
+                      />
+                    </svg>
                   </div>
-                </div>
-                <div className="h-8 w-8 rounded-full border border-[#4ade80]/40 flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#E67E26] animate-pulse"></div>
                 </div>
               </div>
             </div>
 
-            {/* Decoración geométrica en naranja sólido */}
-            <div className="absolute -bottom-4 -left-4 w-24 h-24 border-l-2 border-b-2 border-[#E67E22]/20 rounded-bl-4xl -z-10"></div>
-            <div className="absolute -top-4 -right-4 w-24 h-24 border-r-2 border-t-2 border-[#E67E22]/20 rounded-tr-4xl -z-10"></div>
+            {/* Detalles geométricos */}
+            <div className="absolute -bottom-5 -left-5 -z-10 h-28 w-28 rounded-bl-4xl border-b border-l border-[#AEB9AA]" />
+            <div className="absolute -right-5 -top-5 -z-10 h-28 w-28 rounded-tr-4xl border-r border-t border-[#C2AA98]" />
           </div>
         </div>
       </div>
