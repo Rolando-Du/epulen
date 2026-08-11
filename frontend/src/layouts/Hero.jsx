@@ -1,4 +1,5 @@
 import React from "react";
+import VideoEpulen from "../assets/VIDEO-EPULEN.mp4";
 
 const Hero = () => {
   const puntos = [
@@ -22,18 +23,19 @@ const Hero = () => {
       <div className="pointer-events-none absolute -top-32 -left-32 h-105 w-105 rounded-full bg-[#AAB7A6]/20 blur-[120px]" />
       <div className="pointer-events-none absolute -bottom-40 -right-24 h-105 w-105 rounded-full bg-[#C6AD98]/20 blur-[130px]" />
 
-      <div className="relative mx-auto max-w-7xl px-5 sm:px-8 lg:px-12 py-16 sm:py-20 lg:py-28">
-        <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+      <div className="relative mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-24">
+        <div className="grid items-center gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-12">
           {/* TEXTO */}
           <div className="max-w-3xl">
             <div className="mb-6 inline-flex items-center gap-2.5 rounded-full border border-[#CBD3C8] bg-[#FCFBF8]/85 px-4 py-2 backdrop-blur-sm">
               <span className="h-2 w-2 rounded-full bg-[#788873]" />
+
               <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#5E6D60]">
                 Seguridad industrial
               </span>
             </div>
 
-            <h1 className="max-w-4xl text-4xl font-semibold leading-[1.02] tracking-[-0.045em] text-[#243128] sm:text-5xl md:text-6xl lg:text-7xl">
+            <h1 className="max-w-4xl text-4xl font-semibold leading-[1.02] tracking-[-0.045em] text-[#243128] sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl">
               Protección para trabajar con{" "}
               <span className="text-[#788873]">confianza.</span>
             </h1>
@@ -71,6 +73,7 @@ const Hero = () => {
                   <p className="text-sm font-semibold text-[#405A47]">
                     {item.titulo}
                   </p>
+
                   <p className="mt-1.5 text-xs leading-relaxed text-[#7A837B]">
                     {item.texto}
                   </p>
@@ -79,44 +82,56 @@ const Hero = () => {
             </div>
           </div>
 
-          {/* IMAGEN */}
-          <div className="relative">
-            <div className="relative overflow-hidden rounded-4xl border border-[#D7DDD4] bg-[#E7EAE3] shadow-[0_24px_70px_rgba(36,49,40,0.10)]">
-              <img
-                src="https://imgs.search.brave.com/vIbC1jOSZ7YZvDhhdg-lTVhycIChWlovzo5-OuYQjnI/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9tZWRp/YS5nZXR0eWltYWdl/cy5jb20vaWQvNTA5/NDI1MjYyL2VzL2Zv/dG8vY2FsbGUtc29s/ZGFkb3IuanBnP3M9/NjEyeDYxMiZ3PTAm/az0yMCZjPXpHSVJo/VW5lYXRZN0ZVcFRi/WGFOSVN0UjUzeXhH/d05BRnNvelJmSktl/bzQ9"
-                alt="Profesional utilizando equipamiento de seguridad industrial"
-                className="aspect-4/5 w-full object-cover"
-              />
+          {/* VIDEO */}
+          <div className="relative w-full">
+            {/* Marco exterior */}
+            <div className="relative rounded-[32px] border border-[#D7DDD4] bg-[#E8EBE5] p-3 shadow-[0_24px_70px_rgba(36,49,40,0.10)] sm:p-4">
+              {/* Video horizontal 16:9 para mostrar los costados */}
+              <div className="relative aspect-video w-full overflow-hidden rounded-[24px] bg-[#243128]">
+                <video
+                  className="absolute inset-0 h-full w-full object-cover"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="auto"
+                  aria-label="Video de Epulén Seguridad Industrial"
+                >
+                  <source src={VideoEpulen} type="video/mp4" />
+                  Tu navegador no soporta reproducción de video.
+                </video>
 
-              {/* Overlay suave */}
-              <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-[#243128]/45 via-transparent to-transparent" />
+                {/* Overlay suave */}
+                <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-[#243128]/35 via-transparent to-transparent" />
 
-              {/* Badge inferior */}
-              <div className="absolute bottom-4 left-4 right-4 rounded-2xl border border-white/30 bg-[#F8F6F0]/90 p-4 backdrop-blur-md sm:bottom-6 sm:left-6 sm:right-6">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-semibold text-[#2F3D33]">
-                      Epulén Seguridad Industrial
-                    </p>
-                    <p className="mt-1 text-xs text-[#6E796F]">
-                      Equipamiento y protección para el trabajo.
-                    </p>
-                  </div>
+                {/* Badge inferior */}
+                <div className="absolute bottom-3 left-3 right-3 rounded-2xl border border-white/30 bg-[#F8F6F0]/90 p-3 backdrop-blur-md sm:bottom-4 sm:left-4 sm:right-4 sm:p-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-semibold text-[#2F3D33]">
+                        Epulén Seguridad Industrial
+                      </p>
 
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#405A47] text-white">
-                    <svg
-                      className="h-5 w-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.8"
-                        d="M9 12.75 11.25 15 15 9.75M12 3l7 3v5c0 4.5-2.8 8.5-7 10-4.2-1.5-7-5.5-7-10V6l7-3z"
-                      />
-                    </svg>
+                      <p className="mt-1 text-xs text-[#6E796F]">
+                        Equipamiento y protección para el trabajo.
+                      </p>
+                    </div>
+
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#405A47] text-white">
+                      <svg
+                        className="h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="1.8"
+                          d="M9 12.75 11.25 15 15 9.75M12 3l7 3v5c0 4.5-2.8 8.5-7 10-4.2-1.5-7-5.5-7-10V6l7-3z"
+                        />
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>
