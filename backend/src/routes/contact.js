@@ -7,6 +7,8 @@ import {
 
 const router = express.Router();
 
+// RATE LIMIT
+
 const contactoLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
 
@@ -21,6 +23,8 @@ const contactoLimiter = rateLimit({
     msg: "Realizaste demasiadas consultas. Intentá nuevamente en unos minutos.",
   },
 });
+
+// POST /api/contacto
 
 router.post(
   "/",

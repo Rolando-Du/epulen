@@ -1,6 +1,8 @@
 import Message from "../models/Message.js";
 import transporter from "../config/mailer.js";
 
+// ESCAPAR HTML
+
 const escaparHtml = (texto = "") => {
   return String(texto)
     .replaceAll("&", "&amp;")
@@ -9,6 +11,8 @@ const escaparHtml = (texto = "") => {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 };
+
+// NUEVO MENSAJE
 
 export const nuevoMensaje = async (req, res) => {
   try {
@@ -19,9 +23,9 @@ export const nuevoMensaje = async (req, res) => {
       mensaje,
     } = req.body;
 
-    // ============================
+  
     // VALIDACIONES
-    // ============================
+  
 
     if (!nombre || !email || !telefono || !mensaje) {
       return res.status(400).json({
@@ -30,24 +34,29 @@ export const nuevoMensaje = async (req, res) => {
       });
     }
 
+    const nombreLimpio = nombre.trim();
+    const emailLimpio = email.trim();
+    const telefonoLimpio = telefono.trim();
+    const mensajeLimpio = mensaje.trim();
+
     const emailRegex =
       /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!emailRegex.test(email.trim())) {
+    if (!emailRegex.test(emailLimpio)) {
       return res.status(400).json({
         success: false,
         msg: "Ingresá un email válido.",
       });
     }
 
-    if (nombre.trim().length < 2) {
+    if (nombreLimpio.length < 2) {
       return res.status(400).json({
         success: false,
         msg: "Ingresá un nombre válido.",
       });
     }
 
-    if (mensaje.trim().length < 5) {
+    if (mensajeLimpio.length < 5) {
       return res.status(400).json({
         success: false,
         msg: "La consulta es demasiado corta.",
@@ -55,10 +64,10 @@ export const nuevoMensaje = async (req, res) => {
     }
 
     if (
-      nombre.length > 100 ||
-      email.length > 150 ||
-      telefono.length > 50 ||
-      mensaje.length > 3000
+      nombreLimpio.length > 100 ||
+      emailLimpio.length > 150 ||
+      telefonoLimpio.length > 50 ||
+      mensajeLimpio.length > 3000
     ) {
       return res.status(400).json({
         success: false,
@@ -66,68 +75,105 @@ export const nuevoMensaje = async (req, res) => {
       });
     }
 
-    // ============================
+  
     // GUARDAR EN MONGODB
-    // ============================
+  
 
     const nuevoRegistro = new Message({
-      nombre: nombre.trim(),
-      email: email.trim(),
-      telefono: telefono.trim(),
-      mensaje: mensaje.trim(),
+      nombre: nombreLimpio,
+      email: emailLimpio,
+      telefono: telefonoLimpio,
+      mensaje: mensajeLimpio,
     });
 
-    const mensajeGuardado = await nuevoRegistro.save();
+    const mensajeGuardado =
+      await nuevoRegistro.save();
 
-    // ============================
-    // PREPARAR EMAIL
-    // ============================
+  
+    // PREPARAR DATOS SEGUROS
+    // PARA EL EMAIL HTML
+  
 
-    const nombreSeguro = escaparHtml(nombre.trim());
-    const emailSeguro = escaparHtml(email.trim());
-    const telefonoSeguro = escaparHtml(telefono.trim());
+    const nombreSeguro =
+      escaparHtml(nombreLimpio);
 
-    const mensajeSeguro = escaparHtml(
-      mensaje.trim()
-    ).replaceAll("\n", "<br />");
+    const emailSeguro =
+      escaparHtml(emailLimpio);
+
+    const telefonoSeguro =
+      escaparHtml(telefonoLimpio);
+
+    const mensajeSeguro =
+      escaparHtml(mensajeLimpio)
+        .replaceAll("\n", "<br />");
+
+  
+    // ENVIAR EMAIL
+  
 
     let emailEnviado = false;
 
     try {
       await transporter.sendMail({
+        // Yahoo envía el correo desde la
+        // cuenta autenticada.
         from: `"Web Epulén" <${process.env.SMTP_USER}>`,
 
+        // La consulta llega al correo
+        // comercial de Epulén.
         to: process.env.CONTACT_EMAIL,
 
-        replyTo: email.trim(),
+        // Cuando Epulén presione "Responder",
+        // responderá directamente al cliente.
+        replyTo: emailLimpio,
 
-        subject: `Nueva consulta web - ${nombre.trim()}`,
+        subject: `Nueva consulta web - ${nombreLimpio}`,
+
+      
+        // VERSIÓN TEXTO
+      
 
         text: `
 Nueva consulta desde Epulén Seguridad Industrial
 
 Nombre:
-${nombre.trim()}
+${nombreLimpio}
 
 Email:
-${email.trim()}
+${emailLimpio}
 
 Teléfono:
-${telefono.trim()}
+${telefonoLimpio}
 
 Consulta:
-${mensaje.trim()}
+${mensajeLimpio}
         `,
+
+      
+        // VERSIÓN HTML
+      
 
         html: `
           <!DOCTYPE html>
 
           <html lang="es">
 
+            <head>
+              <meta charset="UTF-8" />
+              <meta
+                name="viewport"
+                content="width=device-width, initial-scale=1.0"
+              />
+
+              <title>
+                Nueva consulta - Epulén Seguridad Industrial
+              </title>
+            </head>
+
             <body
               style="
                 margin:0;
-                padding:30px;
+                padding:30px 15px;
                 background:#F4F2EC;
                 font-family:Arial,Helvetica,sans-serif;
                 color:#243128;
@@ -142,10 +188,14 @@ ${mensaje.trim()}
                   border:1px solid #D8DDD4;
                   border-radius:18px;
                   overflow:hidden;
+                  box-shadow:
+                    0 15px 40px rgba(36,49,40,0.08);
                 "
               >
 
+                <!-- ====================== -->
                 <!-- HEADER -->
+                <!-- ====================== -->
 
                 <div
                   style="
@@ -176,7 +226,9 @@ ${mensaje.trim()}
 
                 </div>
 
+                <!-- ====================== -->
                 <!-- CONTENIDO -->
+                <!-- ====================== -->
 
                 <div style="padding:32px;">
 
@@ -184,11 +236,13 @@ ${mensaje.trim()}
                     style="
                       margin-top:0;
                       font-size:14px;
+                      line-height:1.6;
                       color:#687168;
                     "
                   >
-                    Se recibió una nueva consulta desde
-                    el formulario de contacto.
+                    Se recibió una nueva consulta
+                    desde el formulario de contacto
+                    de Epulén Seguridad Industrial.
                   </p>
 
                   <div
@@ -199,13 +253,18 @@ ${mensaje.trim()}
                     "
                   >
 
+                    <!-- NOMBRE -->
+
                     <div style="margin-bottom:20px;">
 
                       <div
                         style="
                           color:#788873;
                           font-size:12px;
+                          font-weight:600;
                           margin-bottom:5px;
+                          text-transform:uppercase;
+                          letter-spacing:0.05em;
                         "
                       >
                         Nombre
@@ -222,23 +281,38 @@ ${mensaje.trim()}
 
                     </div>
 
+                    <!-- EMAIL -->
+
                     <div style="margin-bottom:20px;">
 
                       <div
                         style="
                           color:#788873;
                           font-size:12px;
+                          font-weight:600;
                           margin-bottom:5px;
+                          text-transform:uppercase;
+                          letter-spacing:0.05em;
                         "
                       >
                         Email
                       </div>
 
                       <div>
-                        ${emailSeguro}
+                        <a
+                          href="mailto:${emailSeguro}"
+                          style="
+                            color:#405A47;
+                            text-decoration:none;
+                          "
+                        >
+                          ${emailSeguro}
+                        </a>
                       </div>
 
                     </div>
+
+                    <!-- TELÉFONO -->
 
                     <div style="margin-bottom:20px;">
 
@@ -246,7 +320,10 @@ ${mensaje.trim()}
                         style="
                           color:#788873;
                           font-size:12px;
+                          font-weight:600;
                           margin-bottom:5px;
+                          text-transform:uppercase;
+                          letter-spacing:0.05em;
                         "
                       >
                         Teléfono
@@ -258,13 +335,18 @@ ${mensaje.trim()}
 
                     </div>
 
+                    <!-- CONSULTA -->
+
                     <div>
 
                       <div
                         style="
                           color:#788873;
                           font-size:12px;
+                          font-weight:600;
                           margin-bottom:8px;
+                          text-transform:uppercase;
+                          letter-spacing:0.05em;
                         "
                       >
                         Consulta
@@ -277,6 +359,7 @@ ${mensaje.trim()}
                           border-radius:12px;
                           line-height:1.6;
                           font-size:14px;
+                          color:#3E4A40;
                         "
                       >
                         ${mensajeSeguro}
@@ -286,9 +369,39 @@ ${mensaje.trim()}
 
                   </div>
 
+                  <!-- ====================== -->
+                  <!-- RESPONDER -->
+                  <!-- ====================== -->
+
+                  <div
+                    style="
+                      margin-top:28px;
+                    "
+                  >
+
+                    <a
+                      href="mailto:${emailSeguro}"
+                      style="
+                        display:inline-block;
+                        background:#405A47;
+                        color:#FFFFFF;
+                        text-decoration:none;
+                        padding:12px 22px;
+                        border-radius:30px;
+                        font-size:13px;
+                        font-weight:600;
+                      "
+                    >
+                      Responder consulta
+                    </a>
+
+                  </div>
+
                 </div>
 
+                <!-- ====================== -->
                 <!-- FOOTER -->
+                <!-- ====================== -->
 
                 <div
                   style="
@@ -296,9 +409,15 @@ ${mensaje.trim()}
                     padding:18px 32px;
                     color:#8A938B;
                     font-size:11px;
+                    line-height:1.5;
                   "
                 >
-                  Consulta recibida desde epulen.vercel.app
+                  Consulta recibida desde
+                  epulen.vercel.app
+
+                  <br />
+
+                  Epulén Seguridad Industrial
                 </div>
 
               </div>
@@ -312,18 +431,18 @@ ${mensaje.trim()}
       emailEnviado = true;
 
       console.log(
-        `📧 Mail enviado por consulta de ${nombre.trim()}`
+        `📧 Consulta de ${nombreLimpio} enviada a ${process.env.CONTACT_EMAIL}`
       );
     } catch (mailError) {
       console.error(
-        "❌ El mensaje se guardó pero falló el envío del mail:",
-        mailError
+        "❌ El mensaje se guardó en MongoDB pero falló el envío del email:",
+        mailError.message
       );
     }
 
-    // ============================
+  
     // RESPUESTA
-    // ============================
+  
 
     return res.status(201).json({
       success: true,

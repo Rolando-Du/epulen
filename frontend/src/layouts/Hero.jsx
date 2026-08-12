@@ -84,8 +84,9 @@ const Hero = () => {
 
           {/* VIDEO */}
           <div className="relative w-full">
-            <div className="relative rounded-4xl border border-[#D7DDD4] bg-[#E8EBE5] p-3 shadow-[0_24px_70px_rgba(36,49,40,0.10)] sm:p-4">
-              <div className="relative aspect-video w-full overflow-hidden rounded-3xl bg-[#243128]">
+            <div className="relative rounded-3xl border border-[#D7DDD4] bg-[#E8EBE5] p-2 shadow-[0_24px_70px_rgba(36,49,40,0.10)] sm:rounded-4xl sm:p-4">
+              {/* En mobile usamos 4/3 para darle más altura al video */}
+              <div className="relative aspect-4/3 w-full overflow-hidden rounded-2xl bg-[#243128] sm:aspect-video sm:rounded-3xl">
                 <video
                   className="absolute inset-0 h-full w-full object-cover"
                   autoPlay
@@ -106,21 +107,21 @@ const Hero = () => {
                 <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-[#243128]/35 via-transparent to-transparent" />
 
                 {/* Badge inferior */}
-                <div className="absolute bottom-3 left-3 right-3 rounded-2xl border border-white/30 bg-[#F8F6F0]/90 p-3 backdrop-blur-md sm:bottom-4 sm:left-4 sm:right-4 sm:p-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-sm font-semibold text-[#2F3D33]">
+                <div className="absolute bottom-2 left-2 right-2 rounded-xl border border-white/30 bg-[#F8F6F0]/90 px-3 py-2 backdrop-blur-md sm:bottom-4 sm:left-4 sm:right-4 sm:rounded-2xl sm:p-4">
+                  <div className="flex items-center justify-between gap-2 sm:gap-4">
+                    <div className="min-w-0">
+                      <p className="truncate text-[11px] font-semibold leading-tight text-[#2F3D33] sm:text-sm">
                         Epulén Seguridad Industrial
                       </p>
 
-                      <p className="mt-1 text-xs text-[#6E796F]">
+                      <p className="mt-0.5 text-[9px] leading-tight text-[#6E796F] sm:mt-1 sm:text-xs">
                         Equipamiento y protección para el trabajo.
                       </p>
                     </div>
 
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#405A47] text-white">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#405A47] text-white sm:h-10 sm:w-10">
                       <svg
-                        className="h-5 w-5"
+                        className="h-3.5 w-3.5 sm:h-5 sm:w-5"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -140,6 +141,7 @@ const Hero = () => {
 
             {/* Detalles geométricos */}
             <div className="absolute -bottom-5 -left-5 -z-10 h-28 w-28 rounded-bl-4xl border-b border-l border-[#AEB9AA]" />
+
             <div className="absolute -right-5 -top-5 -z-10 h-28 w-28 rounded-tr-4xl border-r border-t border-[#C2AA98]" />
           </div>
         </div>

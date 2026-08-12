@@ -1,29 +1,44 @@
 import mongoose from "mongoose";
 
-const messageSchema = mongoose.Schema({
-  nombre: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  empresa: {
-    type: String,
-    trim: true,
-  },
-  interes: {
-    type: String,
-    required: true,
-  },
-  mensaje: {
-    type: String,
-    required: true,
-  },
-  fecha: {
-    type: Date,
-    default: Date.now(),
-  },
-});
+const messageSchema = new mongoose.Schema(
+  {
+    nombre: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 100,
+    },
 
-const Message = mongoose.model("Message", messageSchema);
+    email: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+      maxlength: 150,
+    },
+
+    telefono: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 50,
+    },
+
+    mensaje: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 3000,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const Message = mongoose.model(
+  "Message",
+  messageSchema
+);
 
 export default Message;

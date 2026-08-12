@@ -7,6 +7,7 @@ import path from "path";
 import fs from "fs";
 
 import conectarDB from "./config/db.js";
+import { verificarMailer } from "./config/mailer.js";
 
 // Rutas
 import contactRoutes from "./routes/contact.js";
@@ -25,11 +26,11 @@ conectarDB();
 const app = express();
 
 /*
-  Render trabaja detrás de un proxy.
+Render trabaja detrás de un proxy.
 
-  Esto es importante especialmente cuando agreguemos
-  express-rate-limit al formulario de contacto,
-  para poder identificar correctamente la IP.
+Esto es importante especialmente para
+express-rate-limit del formulario de contacto,
+para poder identificar correctamente la IP.
 */
 app.set("trust proxy", 1);
 
@@ -37,12 +38,6 @@ app.set("trust proxy", 1);
 // SEGURIDAD
 // ==============================
 
-/*
-  crossOriginResourcePolicy: "cross-origin"
-
-  Es importante porque las imágenes están en el backend
-  y el frontend está desplegado en otro dominio (Vercel).
-*/
 app.use(
   helmet({
     crossOriginResourcePolicy: {
@@ -69,8 +64,9 @@ app.use(
   cors({
     origin: (origin, callback) => {
       /*
-        Permitir requests sin origin:
-        Postman, Thunder Client, Render health checks, etc.
+      Permitir requests sin origin:
+      Postman, Thunder Client,
+      Render health checks, etc.
       */
       if (!origin) {
         return callback(null, true);
@@ -80,10 +76,14 @@ app.use(
         return callback(null, true);
       }
 
-      console.warn(`⚠️ CORS bloqueó el origen: ${origin}`);
+      console.warn(
+        `⚠️ CORS bloqueó el origen: ${origin}`
+      );
 
       return callback(
-        new Error("Origen no permitido por CORS")
+        new Error(
+          "Origen no permitido por CORS"
+        )
       );
     },
 
@@ -170,7 +170,8 @@ app.post("/api/login", (req, res) => {
   }
 
   if (
-    password === process.env.ADMIN_PASSWORD
+    password ===
+    process.env.ADMIN_PASSWORD
   ) {
     return res.status(200).json({
       success: true,
@@ -193,7 +194,8 @@ app.get("/health", (req, res) => {
     success: true,
     message: "Server is running",
     environment:
-      process.env.NODE_ENV || "development",
+      process.env.NODE_ENV ||
+      "development",
   });
 });
 
@@ -213,7 +215,10 @@ app.use("/api", (req, res) => {
 // ==============================
 
 app.use((err, req, res, next) => {
-  console.error("❌ Error del servidor:", err);
+  console.error(
+    "❌ Error del servidor:",
+    err
+  );
 
   if (
     err.message ===
@@ -228,7 +233,8 @@ app.use((err, req, res, next) => {
 
   return res.status(500).json({
     success: false,
-    message: "Error interno del servidor",
+    message:
+      "Error interno del servidor",
   });
 });
 
@@ -239,7 +245,7 @@ app.use((err, req, res, next) => {
 const PORT =
   process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log("");
   console.log(
     "🌿 EPULÉN SEGURIDAD INDUSTRIAL"
@@ -255,9 +261,16 @@ app.listen(PORT, () => {
 
   console.log(
     `🌐 Entorno: ${
-      process.env.NODE_ENV || "development"
+      process.env.NODE_ENV ||
+      "development"
     }`
   );
+
+  console.log("");
+
+  // VERIFICAR SERVIDOR DE EMAIL
+
+  await verificarMailer();
 
   console.log("");
 });

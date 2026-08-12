@@ -1,23 +1,56 @@
 import nodemailer from "nodemailer";
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT || 587),
+const smtpPort = Number(
+  process.env.SMTP_PORT || 465
+);
 
-  secure: Number(process.env.SMTP_PORT) === 465,
+const transporter =
+  nodemailer.createTransport({
+    host:
+      process.env.SMTP_HOST ||
+      "smtp.mail.yahoo.com",
 
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+    port: smtpPort,
+
+    secure: smtpPort === 465,
+
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
 
 export const verificarMailer = async () => {
   try {
+    console.log(
+      "📧 Verificando configuración de correo..."
+    );
+
+    console.log("SMTP:", {
+      host:
+        process.env.SMTP_HOST,
+      port:
+        process.env.SMTP_PORT,
+      user:
+        process.env.SMTP_USER,
+      passwordConfigurada:
+        Boolean(
+          process.env.SMTP_PASS
+        ),
+      contacto:
+        process.env.CONTACT_EMAIL,
+    });
+
     await transporter.verify();
-    console.log("📧 Servidor de correo conectado correctamente");
+
+    console.log(
+      "✅ Servidor de correo Yahoo conectado correctamente"
+    );
   } catch (error) {
-    console.error("❌ Error configurando correo:", error.message);
+    console.error(
+      "❌ Error configurando servidor de correo Yahoo:",
+      error.message
+    );
   }
 };
 
