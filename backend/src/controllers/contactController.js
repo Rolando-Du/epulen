@@ -1,7 +1,9 @@
 import Message from "../models/Message.js";
 import transporter from "../config/mailer.js";
 
+// ==============================
 // ESCAPAR HTML
+// ==============================
 
 const escaparHtml = (texto = "") => {
   return String(texto)
@@ -12,7 +14,9 @@ const escaparHtml = (texto = "") => {
     .replaceAll("'", "&#039;");
 };
 
+// ==============================
 // NUEVO MENSAJE
+// ==============================
 
 export const nuevoMensaje = async (req, res) => {
   try {
@@ -23,21 +27,42 @@ export const nuevoMensaje = async (req, res) => {
       mensaje,
     } = req.body;
 
-  
-    // VALIDACIONES
-  
+    // ==============================
+    // VALIDAR CAMPOS
+    // ==============================
 
-    if (!nombre || !email || !telefono || !mensaje) {
+    if (
+      !nombre ||
+      !email ||
+      !telefono ||
+      !mensaje
+    ) {
       return res.status(400).json({
         success: false,
-        msg: "Todos los campos son obligatorios.",
+        message:
+          "Todos los campos son obligatorios.",
       });
     }
 
-    const nombreLimpio = nombre.trim();
-    const emailLimpio = email.trim();
-    const telefonoLimpio = telefono.trim();
-    const mensajeLimpio = mensaje.trim();
+    // ==============================
+    // LIMPIAR DATOS
+    // ==============================
+
+    const nombreLimpio =
+      String(nombre).trim();
+
+    const emailLimpio =
+      String(email).trim();
+
+    const telefonoLimpio =
+      String(telefono).trim();
+
+    const mensajeLimpio =
+      String(mensaje).trim();
+
+    // ==============================
+    // VALIDAR EMAIL
+    // ==============================
 
     const emailRegex =
       /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -45,23 +70,38 @@ export const nuevoMensaje = async (req, res) => {
     if (!emailRegex.test(emailLimpio)) {
       return res.status(400).json({
         success: false,
-        msg: "Ingresá un email válido.",
+        message:
+          "Ingresá un email válido.",
       });
     }
+
+    // ==============================
+    // VALIDAR NOMBRE
+    // ==============================
 
     if (nombreLimpio.length < 2) {
       return res.status(400).json({
         success: false,
-        msg: "Ingresá un nombre válido.",
+        message:
+          "Ingresá un nombre válido.",
       });
     }
+
+    // ==============================
+    // VALIDAR MENSAJE
+    // ==============================
 
     if (mensajeLimpio.length < 5) {
       return res.status(400).json({
         success: false,
-        msg: "La consulta es demasiado corta.",
+        message:
+          "La consulta es demasiado corta.",
       });
     }
+
+    // ==============================
+    // VALIDAR LONGITUDES
+    // ==============================
 
     if (
       nombreLimpio.length > 100 ||
@@ -71,28 +111,33 @@ export const nuevoMensaje = async (req, res) => {
     ) {
       return res.status(400).json({
         success: false,
-        msg: "La información ingresada es demasiado extensa.",
+        message:
+          "La información ingresada es demasiado extensa.",
       });
     }
 
-  
+    // ==============================
     // GUARDAR EN MONGODB
-  
+    // ==============================
 
-    const nuevoRegistro = new Message({
-      nombre: nombreLimpio,
-      email: emailLimpio,
-      telefono: telefonoLimpio,
-      mensaje: mensajeLimpio,
-    });
+    const nuevoRegistro =
+      new Message({
+        nombre: nombreLimpio,
+        email: emailLimpio,
+        telefono: telefonoLimpio,
+        mensaje: mensajeLimpio,
+      });
 
     const mensajeGuardado =
       await nuevoRegistro.save();
 
-  
-    // PREPARAR DATOS SEGUROS
-    // PARA EL EMAIL HTML
-  
+    console.log(
+      `💾 Consulta de ${nombreLimpio} guardada en MongoDB`
+    );
+
+    // ==============================
+    // PREPARAR DATOS PARA HTML
+    // ==============================
 
     const nombreSeguro =
       escaparHtml(nombreLimpio);
@@ -105,36 +150,38 @@ export const nuevoMensaje = async (req, res) => {
 
     const mensajeSeguro =
       escaparHtml(mensajeLimpio)
-        .replaceAll("\n", "<br />");
+        .replaceAll("\n", "<br>");
 
-  
+    // ==============================
     // ENVIAR EMAIL
-  
-
-    let emailEnviado = false;
+    // ==============================
 
     try {
-      await transporter.sendMail({
-        // Yahoo envía el correo desde la
-        // cuenta autenticada.
-        from: `"Web Epulén" <${process.env.SMTP_USER}>`,
+      console.log(
+        `📨 Enviando consulta a ${process.env.CONTACT_EMAIL}...`
+      );
 
-        // La consulta llega al correo
-        // comercial de Epulén.
-        to: process.env.CONTACT_EMAIL,
+      const info =
+        await transporter.sendMail({
+          // Mantener el remitente exactamente
+          // como la cuenta autenticada de Yahoo
+          from: process.env.SMTP_USER,
 
-        // Cuando Epulén presione "Responder",
-        // responderá directamente al cliente.
-        replyTo: emailLimpio,
+          to: process.env.CONTACT_EMAIL,
 
-        subject: `Nueva consulta web - ${nombreLimpio}`,
+          // Por ahora NO usamos replyTo
+          // porque Yahoo rechazaba el mensaje
+          // durante el comando DATA.
 
-      
-        // VERSIÓN TEXTO
-      
+          subject:
+            "Nueva consulta web Epulen",
 
-        text: `
-Nueva consulta desde Epulén Seguridad Industrial
+          // ==============================
+          // TEXTO PLANO
+          // ==============================
+
+          text: `
+Nueva consulta desde Epulen Seguridad Industrial
 
 Nombre:
 ${nombreLimpio}
@@ -142,320 +189,185 @@ ${nombreLimpio}
 Email:
 ${emailLimpio}
 
-Teléfono:
+Telefono:
 ${telefonoLimpio}
 
 Consulta:
 ${mensajeLimpio}
-        `,
 
-      
-        // VERSIÓN HTML
-      
+----------------------------------------
+Mensaje enviado desde el formulario web
+de Epulen Seguridad Industrial.
+          `.trim(),
 
-        html: `
-          <!DOCTYPE html>
+          // ==============================
+          // HTML SIMPLE
+          // ==============================
 
-          <html lang="es">
+          html: `
+<!doctype html>
+<html lang="es">
+  <body style="margin:0;padding:20px;background:#f4f2ec;font-family:Arial,sans-serif;color:#243128;">
 
-            <head>
-              <meta charset="UTF-8" />
-              <meta
-                name="viewport"
-                content="width=device-width, initial-scale=1.0"
-              />
+    <div style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #d8ddd4;border-radius:12px;overflow:hidden;">
 
-              <title>
-                Nueva consulta - Epulén Seguridad Industrial
-              </title>
-            </head>
+      <div style="background:#405a47;padding:24px;color:#ffffff;">
+        <div style="font-size:20px;font-weight:bold;">
+          Epulen Seguridad Industrial
+        </div>
 
-            <body
-              style="
-                margin:0;
-                padding:30px 15px;
-                background:#F4F2EC;
-                font-family:Arial,Helvetica,sans-serif;
-                color:#243128;
-              "
-            >
+        <div style="margin-top:6px;font-size:13px;">
+          Nueva consulta desde el sitio web
+        </div>
+      </div>
 
-              <div
-                style="
-                  max-width:620px;
-                  margin:0 auto;
-                  background:#FCFBF8;
-                  border:1px solid #D8DDD4;
-                  border-radius:18px;
-                  overflow:hidden;
-                  box-shadow:
-                    0 15px 40px rgba(36,49,40,0.08);
-                "
-              >
+      <div style="padding:24px;">
 
-                <!-- ====================== -->
-                <!-- HEADER -->
-                <!-- ====================== -->
+        <p style="margin-top:0;color:#687168;font-size:14px;">
+          Se recibio una nueva consulta desde el formulario de contacto.
+        </p>
 
-                <div
-                  style="
-                    background:#405A47;
-                    padding:28px 32px;
-                    color:white;
-                  "
-                >
+        <div style="margin-top:24px;">
 
-                  <div
-                    style="
-                      font-size:21px;
-                      font-weight:bold;
-                    "
-                  >
-                    Epulén Seguridad Industrial
-                  </div>
+          <p style="margin:0 0 6px;font-size:12px;color:#788873;font-weight:bold;">
+            NOMBRE
+          </p>
 
-                  <div
-                    style="
-                      margin-top:7px;
-                      color:#E4E9E1;
-                      font-size:13px;
-                    "
-                  >
-                    Nueva consulta desde el sitio web
-                  </div>
+          <p style="margin:0 0 20px;font-size:16px;">
+            ${nombreSeguro}
+          </p>
 
-                </div>
+          <p style="margin:0 0 6px;font-size:12px;color:#788873;font-weight:bold;">
+            EMAIL
+          </p>
 
-                <!-- ====================== -->
-                <!-- CONTENIDO -->
-                <!-- ====================== -->
+          <p style="margin:0 0 20px;font-size:16px;">
+            ${emailSeguro}
+          </p>
 
-                <div style="padding:32px;">
+          <p style="margin:0 0 6px;font-size:12px;color:#788873;font-weight:bold;">
+            TELEFONO
+          </p>
 
-                  <p
-                    style="
-                      margin-top:0;
-                      font-size:14px;
-                      line-height:1.6;
-                      color:#687168;
-                    "
-                  >
-                    Se recibió una nueva consulta
-                    desde el formulario de contacto
-                    de Epulén Seguridad Industrial.
-                  </p>
+          <p style="margin:0 0 20px;font-size:16px;">
+            ${telefonoSeguro}
+          </p>
 
-                  <div
-                    style="
-                      margin-top:25px;
-                      border-top:1px solid #E0E4DD;
-                      padding-top:22px;
-                    "
-                  >
+          <p style="margin:0 0 6px;font-size:12px;color:#788873;font-weight:bold;">
+            CONSULTA
+          </p>
 
-                    <!-- NOMBRE -->
+          <div style="background:#f4f2ec;padding:16px;border-radius:8px;font-size:14px;line-height:1.6;">
+            ${mensajeSeguro}
+          </div>
 
-                    <div style="margin-bottom:20px;">
+        </div>
+      </div>
 
-                      <div
-                        style="
-                          color:#788873;
-                          font-size:12px;
-                          font-weight:600;
-                          margin-bottom:5px;
-                          text-transform:uppercase;
-                          letter-spacing:0.05em;
-                        "
-                      >
-                        Nombre
-                      </div>
+      <div style="padding:16px 24px;border-top:1px solid #e0e4dd;font-size:11px;color:#8a938b;">
+        Epulen Seguridad Industrial
+      </div>
 
-                      <div
-                        style="
-                          font-size:16px;
-                          font-weight:600;
-                        "
-                      >
-                        ${nombreSeguro}
-                      </div>
+    </div>
 
-                    </div>
+  </body>
+</html>
+          `.trim(),
+        });
 
-                    <!-- EMAIL -->
-
-                    <div style="margin-bottom:20px;">
-
-                      <div
-                        style="
-                          color:#788873;
-                          font-size:12px;
-                          font-weight:600;
-                          margin-bottom:5px;
-                          text-transform:uppercase;
-                          letter-spacing:0.05em;
-                        "
-                      >
-                        Email
-                      </div>
-
-                      <div>
-                        <a
-                          href="mailto:${emailSeguro}"
-                          style="
-                            color:#405A47;
-                            text-decoration:none;
-                          "
-                        >
-                          ${emailSeguro}
-                        </a>
-                      </div>
-
-                    </div>
-
-                    <!-- TELÉFONO -->
-
-                    <div style="margin-bottom:20px;">
-
-                      <div
-                        style="
-                          color:#788873;
-                          font-size:12px;
-                          font-weight:600;
-                          margin-bottom:5px;
-                          text-transform:uppercase;
-                          letter-spacing:0.05em;
-                        "
-                      >
-                        Teléfono
-                      </div>
-
-                      <div>
-                        ${telefonoSeguro}
-                      </div>
-
-                    </div>
-
-                    <!-- CONSULTA -->
-
-                    <div>
-
-                      <div
-                        style="
-                          color:#788873;
-                          font-size:12px;
-                          font-weight:600;
-                          margin-bottom:8px;
-                          text-transform:uppercase;
-                          letter-spacing:0.05em;
-                        "
-                      >
-                        Consulta
-                      </div>
-
-                      <div
-                        style="
-                          background:#F4F2EC;
-                          padding:18px;
-                          border-radius:12px;
-                          line-height:1.6;
-                          font-size:14px;
-                          color:#3E4A40;
-                        "
-                      >
-                        ${mensajeSeguro}
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                  <!-- ====================== -->
-                  <!-- RESPONDER -->
-                  <!-- ====================== -->
-
-                  <div
-                    style="
-                      margin-top:28px;
-                    "
-                  >
-
-                    <a
-                      href="mailto:${emailSeguro}"
-                      style="
-                        display:inline-block;
-                        background:#405A47;
-                        color:#FFFFFF;
-                        text-decoration:none;
-                        padding:12px 22px;
-                        border-radius:30px;
-                        font-size:13px;
-                        font-weight:600;
-                      "
-                    >
-                      Responder consulta
-                    </a>
-
-                  </div>
-
-                </div>
-
-                <!-- ====================== -->
-                <!-- FOOTER -->
-                <!-- ====================== -->
-
-                <div
-                  style="
-                    border-top:1px solid #E0E4DD;
-                    padding:18px 32px;
-                    color:#8A938B;
-                    font-size:11px;
-                    line-height:1.5;
-                  "
-                >
-                  Consulta recibida desde
-                  epulen.vercel.app
-
-                  <br />
-
-                  Epulén Seguridad Industrial
-                </div>
-
-              </div>
-
-            </body>
-
-          </html>
-        `,
-      });
-
-      emailEnviado = true;
+      // ==============================
+      // EMAIL ENVIADO
+      // ==============================
 
       console.log(
-        `📧 Consulta de ${nombreLimpio} enviada a ${process.env.CONTACT_EMAIL}`
+        "✅ Correo enviado correctamente"
       );
+
+      console.log(
+        "📧 Message ID:",
+        info.messageId
+      );
+
+      console.log(
+        "📬 Accepted:",
+        info.accepted
+      );
+
+      console.log(
+        "🚫 Rejected:",
+        info.rejected
+      );
+
+      // ==============================
+      // RESPUESTA AL FRONTEND
+      // ==============================
+
+      return res.status(201).json({
+        success: true,
+
+        message:
+          "Recibimos tu consulta. Nos pondremos en contacto a la brevedad.",
+
+        emailEnviado: true,
+
+        data: {
+          id: mensajeGuardado._id,
+        },
+      });
     } catch (mailError) {
+      // ==============================
+      // ERROR SMTP
+      // ==============================
+
+      console.error("");
+
       console.error(
-        "❌ El mensaje se guardó en MongoDB pero falló el envío del email:",
-        mailError.message
+        "❌ El mensaje se guardó en MongoDB pero falló el envío del email"
       );
+
+      console.error("SMTP ERROR:", {
+        message:
+          mailError.message,
+
+        code:
+          mailError.code,
+
+        command:
+          mailError.command,
+
+        responseCode:
+          mailError.responseCode,
+
+        response:
+          mailError.response,
+
+        rejected:
+          mailError.rejected,
+
+        rejectedErrors:
+          mailError.rejectedErrors,
+      });
+
+      console.error("");
+
+      return res.status(502).json({
+        success: false,
+
+        message:
+          "La consulta fue guardada, pero no pudimos enviar la notificación por correo.",
+
+        emailEnviado: false,
+
+        data: {
+          id: mensajeGuardado._id,
+        },
+      });
     }
-
-  
-    // RESPUESTA
-  
-
-    return res.status(201).json({
-      success: true,
-
-      msg: emailEnviado
-        ? "Mensaje recibido y notificación enviada."
-        : "Mensaje recibido correctamente.",
-
-      emailEnviado,
-
-      data: mensajeGuardado,
-    });
   } catch (error) {
+    // ==============================
+    // ERROR GENERAL
+    // ==============================
+
     console.error(
       "❌ Error procesando contacto:",
       error
@@ -463,7 +375,9 @@ ${mensajeLimpio}
 
     return res.status(500).json({
       success: false,
-      msg: "Hubo un error al procesar el mensaje.",
+
+      message:
+        "Hubo un error al procesar el mensaje.",
     });
   }
 };

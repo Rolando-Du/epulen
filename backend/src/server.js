@@ -55,8 +55,8 @@ const allowedOrigins = [
   "http://127.0.0.1:5173",
   "https://epulen.vercel.app",
 
-  // Si en producción configuramos FRONTEND_URL,
-  // también se agrega automáticamente.
+  // En producción se puede configurar
+  // mediante variable de entorno.
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
@@ -64,10 +64,13 @@ app.use(
   cors({
     origin: (origin, callback) => {
       /*
-      Permitir requests sin origin:
-      Postman, Thunder Client,
-      Render health checks, etc.
+      Permitir requests sin Origin:
+      Postman,
+      Thunder Client,
+      Render health checks,
+      etc.
       */
+
       if (!origin) {
         return callback(null, true);
       }
@@ -193,6 +196,7 @@ app.get("/health", (req, res) => {
   return res.status(200).json({
     success: true,
     message: "Server is running",
+
     environment:
       process.env.NODE_ENV ||
       "development",
@@ -247,6 +251,7 @@ const PORT =
 
 app.listen(PORT, async () => {
   console.log("");
+
   console.log(
     "🌿 EPULÉN SEGURIDAD INDUSTRIAL"
   );
@@ -268,7 +273,9 @@ app.listen(PORT, async () => {
 
   console.log("");
 
+  // ==============================
   // VERIFICAR SERVIDOR DE EMAIL
+  // ==============================
 
   await verificarMailer();
 
