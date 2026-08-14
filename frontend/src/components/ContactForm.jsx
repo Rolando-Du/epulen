@@ -1,10 +1,7 @@
-import React, { useMemo, useRef, useState } from "react";
-import emailjs from "@emailjs/browser";
+import React, { useState } from "react";
 import Swal from "sweetalert2";
 
 const ContactForm = () => {
-  const form = useRef(null);
-
   const [formData, setFormData] = useState({
     nombre: "",
     email: "",
@@ -14,27 +11,28 @@ const ContactForm = () => {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-  const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-  const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+  // ==============================
+  // API
+  // ==============================
 
-  const emailjsReady = useMemo(() => {
-    return Boolean(
-      EMAILJS_SERVICE_ID &&
-        EMAILJS_TEMPLATE_ID &&
-        EMAILJS_PUBLIC_KEY
-    );
-  }, [
-    EMAILJS_SERVICE_ID,
-    EMAILJS_TEMPLATE_ID,
-    EMAILJS_PUBLIC_KEY,
-  ]);
+  const API_URL = (
+    import.meta.env.VITE_API_URL ||
+    "http://localhost:5000"
+  ).replace(/\/$/, "");
+
+  // ==============================
+  // SWEET ALERT
+  // ==============================
 
   const swalBase = {
     background: "#FCFBF8",
     color: "#243128",
     confirmButtonColor: "#405A47",
   };
+
+  // ==============================
+  // CAMBIOS DEL FORMULARIO
+  // ==============================
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -45,62 +43,139 @@ const ContactForm = () => {
     }));
   };
 
+  // ==============================
+  // ENVÍO DEL FORMULARIO
+  // ==============================
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!emailjsReady) {
+    if (isLoading) return;
+
+    const nombre = formData.nombre.trim();
+    const email = formData.email.trim();
+    const telefono = formData.telefono.trim();
+    const mensaje = formData.mensaje.trim();
+
+    // Validar campos
+    if (
+      !nombre ||
+      !email ||
+      !telefono ||
+      !mensaje
+    ) {
       await Swal.fire({
         ...swalBase,
-        icon: "error",
-        title: "Configuración incompleta",
-        text: "Las credenciales de EmailJS no están configuradas correctamente.",
+        icon: "warning",
+        title: "Campos incompletos",
+        text: "Por favor completá todos los campos.",
       });
+
       return;
     }
 
-    if (isLoading) return;
+    // Validación básica del email
+    const emailRegex =
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email)) {
+      await Swal.fire({
+        ...swalBase,
+        icon: "warning",
+        title: "Email inválido",
+        text: "Ingresá una dirección de correo válida.",
+      });
+
+      return;
+    }
 
     setIsLoading(true);
 
     try {
-      await emailjs.sendForm(
-        EMAILJS_SERVICE_ID,
-        EMAILJS_TEMPLATE_ID,
-        form.current,
-        EMAILJS_PUBLIC_KEY
+      console.log(
+        "📨 Enviando consulta a:",
+        `${API_URL}/api/contacto`
       );
+
+      const response = await fetch(
+        `${API_URL}/api/contacto`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            nombre,
+            email,
+            telefono,
+            mensaje,
+          }),
+        }
+      );
+
+      // Intentar obtener respuesta JSON
+      let data = {};
+
+      try {
+        data = await response.json();
+      } catch {
+        data = {};
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          data?.message ||
+            `Error del servidor (${response.status})`
+        );
+      }
+
+      // ==============================
+      // ÉXITO
+      // ==============================
 
       await Swal.fire({
         ...swalBase,
         icon: "success",
         title: "Solicitud enviada",
-        text: "Recibimos tu consulta. Nos pondremos en contacto a la brevedad.",
+        text:
+          data?.message ||
+          "Recibimos tu consulta. Nos pondremos en contacto a la brevedad.",
         timer: 3200,
         showConfirmButton: false,
       });
 
+      // Limpiar formulario
       setFormData({
         nombre: "",
         email: "",
         telefono: "",
         mensaje: "",
       });
-
-      form.current?.reset();
     } catch (error) {
-      console.error("Error enviando formulario:", error);
+      console.error(
+        "❌ Error enviando formulario:",
+        error
+      );
 
       await Swal.fire({
         ...swalBase,
         icon: "error",
         title: "No se pudo enviar",
-        text: "Intentá nuevamente en unos minutos o contactanos por WhatsApp.",
+        text:
+          error.message ||
+          "Intentá nuevamente en unos minutos o contactanos por WhatsApp.",
         confirmButtonColor: "#9A5D51",
       });
     } finally {
       setIsLoading(false);
     }
   };
+
+  // ==============================
+  // ESTILOS
+  // ==============================
 
   const inputBase =
     "w-full rounded-xl bg-[#F8F7F3] border border-[#D7DDD4] text-[#243128] outline-none " +
@@ -110,17 +185,25 @@ const ContactForm = () => {
   const labelBase =
     "block text-sm font-medium text-[#526054] mb-2";
 
+  // ==============================
+  // COMPONENTE
+  // ==============================
+
   return (
     <section
       id="contacto"
       className="relative overflow-hidden rounded-4xl border border-[#D8DDD4] bg-[#FCFBF8] px-5 py-10 shadow-[0_22px_65px_rgba(36,49,40,0.06)] sm:px-8 lg:px-10 lg:py-12"
     >
-      {/* Decoración muy sutil */}
+      {/* Decoración */}
+
       <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#AAB7A6]/15 blur-[90px]" />
+
       <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-[#C6AD98]/15 blur-[90px]" />
 
       <div className="relative z-10 mx-auto w-full max-w-4xl">
+
         {/* ENCABEZADO */}
+
         <div className="mb-9 max-w-2xl">
           <p className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-[#788873]">
             Contacto
@@ -131,19 +214,27 @@ const ContactForm = () => {
           </h2>
 
           <p className="mt-4 text-sm leading-relaxed text-[#6D776F] sm:text-base">
-            Enviá tu consulta y te ayudamos a encontrar el equipamiento o la
-            solución de seguridad más adecuada para tu actividad.
+            Enviá tu consulta y te ayudamos a
+            encontrar el equipamiento o la solución
+            de seguridad más adecuada para tu
+            actividad.
           </p>
         </div>
 
+        {/* FORMULARIO */}
+
         <form
-          ref={form}
           onSubmit={handleSubmit}
           className="grid grid-cols-1 gap-5 md:grid-cols-2"
         >
+
           {/* NOMBRE */}
+
           <div>
-            <label htmlFor="nombre" className={labelBase}>
+            <label
+              htmlFor="nombre"
+              className={labelBase}
+            >
               Nombre y apellido
             </label>
 
@@ -158,12 +249,17 @@ const ContactForm = () => {
               disabled={isLoading}
               autoComplete="name"
               required
+              maxLength={100}
             />
           </div>
 
           {/* EMAIL */}
+
           <div>
-            <label htmlFor="email" className={labelBase}>
+            <label
+              htmlFor="email"
+              className={labelBase}
+            >
               Email
             </label>
 
@@ -178,12 +274,17 @@ const ContactForm = () => {
               disabled={isLoading}
               autoComplete="email"
               required
+              maxLength={150}
             />
           </div>
 
           {/* TELÉFONO */}
+
           <div className="md:col-span-2">
-            <label htmlFor="telefono" className={labelBase}>
+            <label
+              htmlFor="telefono"
+              className={labelBase}
+            >
               Teléfono
             </label>
 
@@ -198,12 +299,17 @@ const ContactForm = () => {
               disabled={isLoading}
               autoComplete="tel"
               required
+              maxLength={30}
             />
           </div>
 
           {/* MENSAJE */}
+
           <div className="md:col-span-2">
-            <label htmlFor="mensaje" className={labelBase}>
+            <label
+              htmlFor="mensaje"
+              className={labelBase}
+            >
               Consulta
             </label>
 
@@ -216,13 +322,17 @@ const ContactForm = () => {
               value={formData.mensaje}
               disabled={isLoading}
               required
+              maxLength={2000}
             />
           </div>
 
-          {/* FOOTER FORM */}
+          {/* FOOTER */}
+
           <div className="md:col-span-2 flex flex-col gap-4 border-t border-[#E0E4DD] pt-5 sm:flex-row sm:items-center sm:justify-between">
+
             <p className="max-w-md text-xs leading-relaxed text-[#8A938B]">
-              Usaremos estos datos únicamente para responder tu consulta.
+              Usaremos estos datos únicamente para
+              responder tu consulta.
             </p>
 
             <button
@@ -245,29 +355,28 @@ const ContactForm = () => {
                       stroke="currentColor"
                       strokeWidth="4"
                     />
+
                     <path
                       className="opacity-75"
                       fill="currentColor"
                       d="M4 12a8 8 0 018-8V0C5.37 0 0 5.37 0 12h4z"
                     />
                   </svg>
+
                   Enviando...
                 </>
               ) : (
                 <>
                   Enviar consulta
-                  <span aria-hidden="true">→</span>
+
+                  <span aria-hidden="true">
+                    →
+                  </span>
                 </>
               )}
             </button>
           </div>
         </form>
-
-        {!emailjsReady && (
-          <p className="mt-5 rounded-xl border border-[#E9D5D0] bg-[#F9EFEC] px-4 py-3 text-xs text-[#965C52]">
-            EmailJS no está configurado en este entorno.
-          </p>
-        )}
       </div>
     </section>
   );
