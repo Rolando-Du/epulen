@@ -1,44 +1,8 @@
 import multer from "multer";
-import path from "path";
-import fs from "fs";
 
-// CARPETA DE UPLOADS
+// STORAGE EN MEMORIA
 
-const uploadDir = path.join(
-  process.cwd(),
-  "uploads"
-);
-
-// Crear carpeta si no existe
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, {
-    recursive: true,
-  });
-}
-
-// STORAGE
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-
-  filename: (req, file, cb) => {
-    const extension = path
-      .extname(file.originalname)
-      .toLowerCase();
-
-    const uniqueSuffix =
-      Date.now() +
-      "-" +
-      Math.round(Math.random() * 1e9);
-
-    cb(
-      null,
-      `${uniqueSuffix}${extension}`
-    );
-  },
-});
+const storage = multer.memoryStorage();
 
 // FILTRO DE ARCHIVOS
 
@@ -71,7 +35,7 @@ const upload = multer({
     // Máximo 5 MB por imagen
     fileSize: 5 * 1024 * 1024,
 
-    // Máximo 5 imágenes
+    // Máximo 5 imágenes por producto
     files: 5,
   },
 });
