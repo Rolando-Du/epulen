@@ -1,11 +1,10 @@
 import Product from "../models/Product.js";
 import cloudinary from "../config/cloudinary.js";
-
-import fs from "fs";
-import path from "path";
 import mongoose from "mongoose";
 
-// CLOUDINARY
+// ==============================
+// SUBIR IMAGEN A CLOUDINARY
+// ==============================
 
 const subirImagenCloudinary = (file) => {
   return new Promise((resolve, reject) => {
@@ -13,10 +12,7 @@ const subirImagenCloudinary = (file) => {
       cloudinary.uploader.upload_stream(
         {
           resource_type: "image",
-
-          // Tu cuenta utiliza Dynamic folders
           asset_folder: "epulen/productos",
-
           use_filename: true,
           unique_filename: true,
           overwrite: false,
@@ -34,7 +30,9 @@ const subirImagenCloudinary = (file) => {
   });
 };
 
+// ==============================
 // ELIMINAR IMAGEN DE CLOUDINARY
+// ==============================
 
 const eliminarImagenCloudinary = async (
   publicId
@@ -57,39 +55,9 @@ const eliminarImagenCloudinary = async (
   }
 };
 
-// ELIMINAR IMAGEN LOCAL ANTIGUA
-
-const eliminarImagenLocal = (imgRuta) => {
-  if (
-    !imgRuta ||
-    !imgRuta.startsWith("/uploads/")
-  ) {
-    return;
-  }
-
-  try {
-    const nombreArchivo =
-      path.basename(imgRuta);
-
-    const rutaAbsoluta =
-      path.join(
-        process.cwd(),
-        "uploads",
-        nombreArchivo
-      );
-
-    if (fs.existsSync(rutaAbsoluta)) {
-      fs.unlinkSync(rutaAbsoluta);
-    }
-  } catch (error) {
-    console.error(
-      "⚠️ No se pudo eliminar imagen local:",
-      error.message
-    );
-  }
-};
-
+// ==============================
 // 1. OBTENER TODOS LOS PRODUCTOS
+// ==============================
 
 export const obtenerProductos = async (
   req,
@@ -114,7 +82,9 @@ export const obtenerProductos = async (
   }
 };
 
+// ==============================
 // 2. OBTENER PRODUCTO POR ID
+// ==============================
 
 export const obtenerProductoPorId =
   async (req, res) => {
@@ -153,7 +123,9 @@ export const obtenerProductoPorId =
     }
   };
 
+// ==============================
 // 3. CREAR PRODUCTO
+// ==============================
 
 export const nuevoProducto = async (
   req,
@@ -170,7 +142,10 @@ export const nuevoProducto = async (
       tallas,
       destacado,
     } = req.body;
-    // VALIDACIONE
+
+    // ==============================
+    // VALIDACIONES
+    // ==============================
 
     if (
       !nombre ||
@@ -179,7 +154,8 @@ export const nuevoProducto = async (
       precio === undefined
     ) {
       return res.status(400).json({
-        msg: "Faltan datos obligatorios del producto",
+        msg:
+          "Faltan datos obligatorios del producto",
       });
     }
 
@@ -188,10 +164,14 @@ export const nuevoProducto = async (
       req.files.length === 0
     ) {
       return res.status(400).json({
-        msg: "Debes subir al menos una imagen",
+        msg:
+          "Debes subir al menos una imagen",
       });
     }
-    // TALLA
+
+    // ==============================
+    // TALLAS
+    // ==============================
 
     let tallasParseadas = [];
 
@@ -202,7 +182,9 @@ export const nuevoProducto = async (
           : tallas || [];
 
       if (
-        !Array.isArray(tallasParseadas)
+        !Array.isArray(
+          tallasParseadas
+        )
       ) {
         throw new Error();
       }
@@ -211,7 +193,10 @@ export const nuevoProducto = async (
         msg: "Formato de tallas inválido",
       });
     }
-    // SUBIR IMÁGENES A CLOUDINAR
+
+    // ==============================
+    // SUBIR IMÁGENES A CLOUDINARY
+    // ==============================
 
     for (const file of req.files) {
       const resultado =
@@ -220,14 +205,21 @@ export const nuevoProducto = async (
         );
 
       imagenesSubidas.push({
-        url: resultado.secure_url,
-        publicId: resultado.public_id,
+        url:
+          resultado.secure_url,
+
+        publicId:
+          resultado.public_id,
       });
     }
-    // CREAR PRODUCT
+
+    // ==============================
+    // CREAR PRODUCTO
+    // ==============================
 
     const producto = new Product({
-      nombre: nombre.trim(),
+      nombre:
+        nombre.trim(),
 
       descripcion:
         descripcion.trim(),
@@ -235,7 +227,8 @@ export const nuevoProducto = async (
       categoria:
         categoria.trim(),
 
-      precio: Number(precio),
+      precio:
+        Number(precio),
 
       tallas:
         tallasParseadas,
@@ -244,13 +237,12 @@ export const nuevoProducto = async (
         destacado === "true" ||
         destacado === true,
 
-      // URLs públicas
       imagenes:
         imagenesSubidas.map(
-          (imagen) => imagen.url
+          (imagen) =>
+            imagen.url
         ),
 
-      // IDs necesarios para borrar
       imagenesPublicIds:
         imagenesSubidas.map(
           (imagen) =>
@@ -272,16 +264,20 @@ export const nuevoProducto = async (
       "❌ Error en nuevoProducto:",
       error
     );
-    // ROLLBACK CLOUDINAR
+
+    // ==============================
+    // ROLLBACK CLOUDINARY
+    // ==============================
 
     /*
-    Si algo falló después de haber
-    subido imágenes, las eliminamos
-    para no dejar archivos huérfanos.
+    Si Cloudinary recibió imágenes
+    pero MongoDB falló, eliminamos
+    las imágenes recién subidas.
     */
 
     for (
-      const imagen of imagenesSubidas
+      const imagen of
+      imagenesSubidas
     ) {
       await eliminarImagenCloudinary(
         imagen.publicId
@@ -296,7 +292,9 @@ export const nuevoProducto = async (
   }
 };
 
+// ==============================
 // 4. ACTUALIZAR PRODUCTO
+// ==============================
 
 export const actualizarProducto =
   async (req, res) => {
@@ -320,15 +318,12 @@ export const actualizarProducto =
 
       if (!producto) {
         return res.status(404).json({
-          msg: "No existe el producto",
+          msg:
+            "No existe el producto",
         });
       }
 
-      // GUARDAR REFERENCIAS ANTERIORES
-
-      const imagenesAnteriores = [
-        ...(producto.imagenes || []),
-      ];
+      // IMÁGENES ACTUALES
 
       const publicIdsAnteriores = [
         ...(
@@ -399,26 +394,30 @@ export const actualizarProducto =
           return res
             .status(400)
             .json({
-              msg: "Formato de tallas inválido",
+              msg:
+                "Formato de tallas inválido",
             });
         }
       }
 
-      // NUEVAS IMÁGENES
+      // REEMPLAZAR IMÁGENES
 
       if (
         req.files &&
         req.files.length > 0
       ) {
         /*
-        Primero subimos las nuevas.
+        Primero subimos las imágenes
+        nuevas a Cloudinary.
 
-        NO borramos las anteriores
-        hasta saber que MongoDB guardó
-        correctamente el producto.
+        No eliminamos las anteriores
+        hasta guardar correctamente
+        el producto en MongoDB.
         */
 
-        for (const file of req.files) {
+        for (
+          const file of req.files
+        ) {
           const resultado =
             await subirImagenCloudinary(
               file
@@ -435,7 +434,8 @@ export const actualizarProducto =
 
         producto.imagenes =
           nuevasImagenesSubidas.map(
-            (imagen) => imagen.url
+            (imagen) =>
+              imagen.url
           );
 
         producto.imagenesPublicIds =
@@ -449,17 +449,12 @@ export const actualizarProducto =
 
       await producto.save();
 
-      // LIMPIAR IMÁGENES ANTERIORES
+      // ELIMINAR IMÁGENES ANTERIORES
 
       if (
         nuevasImagenesSubidas.length >
         0
       ) {
-        /*
-        Imágenes de productos nuevos
-        almacenadas en Cloudinary.
-        */
-
         for (
           const publicId of
           publicIdsAnteriores
@@ -467,19 +462,6 @@ export const actualizarProducto =
           await eliminarImagenCloudinary(
             publicId
           );
-        }
-
-        /*
-        Compatibilidad temporal con
-        productos antiguos que todavía
-        utilizan /uploads/...
-        */
-
-        for (
-          const imagen of
-          imagenesAnteriores
-        ) {
-          eliminarImagenLocal(imagen);
         }
       }
 
@@ -494,12 +476,12 @@ export const actualizarProducto =
         error
       );
 
-      // ROLLBACK
+      // ROLLBACK CLOUDINARY
 
       /*
-      Si falló la actualización después
-      de subir nuevas imágenes, quitamos
-      solamente las nuevas imágenes.
+      Si algo falla después de subir
+      las imágenes nuevas, eliminamos
+      solamente esas imágenes.
       */
 
       for (
@@ -519,7 +501,9 @@ export const actualizarProducto =
     }
   };
 
+// ==============================
 // 5. ELIMINAR PRODUCTO
+// ==============================
 
 export const eliminarProducto =
   async (req, res) => {
@@ -541,14 +525,12 @@ export const eliminarProducto =
 
       if (!producto) {
         return res.status(404).json({
-          msg: "Producto no encontrado",
+          msg:
+            "Producto no encontrado",
         });
       }
 
-      // Guardar referencias
-      const imagenes = [
-        ...(producto.imagenes || []),
-      ];
+      // IDS DE CLOUDINARY
 
       const publicIds = [
         ...(
@@ -557,22 +539,18 @@ export const eliminarProducto =
         ),
       ];
 
-      // ELIMINAR DE MONGODB
+      // ELIMINAR PRODUCTO
 
       await producto.deleteOne();
 
-      // ELIMINAR DE CLOUDINARY
+      // ELIMINAR IMÁGENES CLOUDINARY
 
-      for (const publicId of publicIds) {
+      for (
+        const publicId of publicIds
+      ) {
         await eliminarImagenCloudinary(
           publicId
         );
-      }
-
-      // COMPATIBILIDAD PRODUCTOS VIEJOS
-
-      for (const imagen of imagenes) {
-        eliminarImagenLocal(imagen);
       }
 
       console.log(
@@ -580,7 +558,8 @@ export const eliminarProducto =
       );
 
       return res.json({
-        msg: "Eliminado correctamente",
+        msg:
+          "Eliminado correctamente",
       });
     } catch (error) {
       console.error(

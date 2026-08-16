@@ -3,8 +3,6 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import path from "path";
-import fs from "fs";
 
 import conectarDB from "./config/db.js";
 
@@ -21,8 +19,6 @@ const app = express();
 
 /*
 Render trabaja detrás de un proxy.
-Lo dejamos configurado para obtener
-correctamente información de las requests.
 */
 app.set("trust proxy", 1);
 
@@ -105,24 +101,6 @@ app.use(
     extended: true,
     limit: "100kb",
   })
-);
-
-// UPLOADS
-
-const uploadsPath = path.join(
-  process.cwd(),
-  "uploads"
-);
-
-if (!fs.existsSync(uploadsPath)) {
-  fs.mkdirSync(uploadsPath, {
-    recursive: true,
-  });
-}
-
-app.use(
-  "/uploads",
-  express.static(uploadsPath)
 );
 
 // RUTAS API
@@ -221,10 +199,6 @@ app.listen(PORT, () => {
 
   console.log(
     `Servidor operativo en puerto ${PORT}`
-  );
-
-  console.log(
-    `Carpeta de imágenes: ${uploadsPath}`
   );
 
   console.log(
