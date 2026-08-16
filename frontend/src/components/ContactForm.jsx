@@ -1,5 +1,19 @@
 import React, { useState } from "react";
+import emailjs from "@emailjs/browser";
 import Swal from "sweetalert2";
+
+// EMAILJS
+
+const EMAILJS_SERVICE_ID =
+  import.meta.env.VITE_EMAILJS_SERVICE_ID;
+
+const EMAILJS_TEMPLATE_ID =
+  import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+
+const EMAILJS_PUBLIC_KEY =
+  import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+// COMPONENTE
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
@@ -11,18 +25,9 @@ const ContactForm = () => {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  // ==============================
-  // API
-  // ==============================
 
-  const API_URL = (
-    import.meta.env.VITE_API_URL ||
-    "http://localhost:5000"
-  ).replace(/\/$/, "");
-
-  // ==============================
   // SWEET ALERT
-  // ==============================
+
 
   const swalBase = {
     background: "#FCFBF8",
@@ -30,9 +35,9 @@ const ContactForm = () => {
     confirmButtonColor: "#405A47",
   };
 
-  // ==============================
+
   // CAMBIOS DEL FORMULARIO
-  // ==============================
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -43,9 +48,9 @@ const ContactForm = () => {
     }));
   };
 
-  // ==============================
+
   // ENVÍO DEL FORMULARIO
-  // ==============================
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -57,7 +62,30 @@ const ContactForm = () => {
     const telefono = formData.telefono.trim();
     const mensaje = formData.mensaje.trim();
 
-    // Validar campos
+  
+    // VALIDAR CONFIGURACIÓN
+  
+
+    if (
+      !EMAILJS_SERVICE_ID ||
+      !EMAILJS_TEMPLATE_ID ||
+      !EMAILJS_PUBLIC_KEY
+    ) {
+      await Swal.fire({
+        ...swalBase,
+        icon: "error",
+        title: "Configuración incompleta",
+        text:
+          "El formulario de contacto no está disponible en este momento.",
+      });
+
+      return;
+    }
+
+  
+    // VALIDAR CAMPOS
+  
+
     if (
       !nombre ||
       !email ||
@@ -68,13 +96,17 @@ const ContactForm = () => {
         ...swalBase,
         icon: "warning",
         title: "Campos incompletos",
-        text: "Por favor completá todos los campos.",
+        text:
+          "Por favor completá todos los campos.",
       });
 
       return;
     }
 
-    // Validación básica del email
+  
+    // VALIDAR EMAIL
+  
+
     const emailRegex =
       /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -83,7 +115,29 @@ const ContactForm = () => {
         ...swalBase,
         icon: "warning",
         title: "Email inválido",
-        text: "Ingresá una dirección de correo válida.",
+        text:
+          "Ingresá una dirección de correo válida.",
+      });
+
+      return;
+    }
+
+  
+    // VALIDAR LONGITUDES
+  
+
+    if (
+      nombre.length > 100 ||
+      email.length > 150 ||
+      telefono.length > 30 ||
+      mensaje.length > 2000
+    ) {
+      await Swal.fire({
+        ...swalBase,
+        icon: "warning",
+        title: "Datos demasiado extensos",
+        text:
+          "Revisá la información ingresada e intentá nuevamente.",
       });
 
       return;
@@ -92,55 +146,43 @@ const ContactForm = () => {
     setIsLoading(true);
 
     try {
-      console.log(
-        "📨 Enviando consulta a:",
-        `${API_URL}/api/contacto`
-      );
+    
+      // VARIABLES DEL TEMPLATE
+    
 
-      const response = await fetch(
-        `${API_URL}/api/contacto`,
+      const templateParams = {
+        nombre,
+        email,
+        telefono,
+        mensaje,
+
+        from_name: nombre,
+        from_email: email,
+        reply_to: email,
+      };
+
+    
+      // ENVIAR CON EMAILJS
+    
+
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        templateParams,
         {
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json",
-          },
-
-          body: JSON.stringify({
-            nombre,
-            email,
-            telefono,
-            mensaje,
-          }),
+          publicKey: EMAILJS_PUBLIC_KEY,
         }
       );
 
-      // Intentar obtener respuesta JSON
-      let data = {};
-
-      try {
-        data = await response.json();
-      } catch {
-        data = {};
-      }
-
-      if (!response.ok) {
-        throw new Error(
-          data?.message ||
-            `Error del servidor (${response.status})`
-        );
-      }
-
-      // ==============================
+    
       // ÉXITO
-      // ==============================
+    
 
       await Swal.fire({
         ...swalBase,
         icon: "success",
         title: "Solicitud enviada",
         text:
-          data?.message ||
           "Recibimos tu consulta. Nos pondremos en contacto a la brevedad.",
         timer: 3200,
         showConfirmButton: false,
@@ -155,8 +197,10 @@ const ContactForm = () => {
       });
     } catch (error) {
       console.error(
-        "❌ Error enviando formulario:",
-        error
+        "Error enviando formulario:",
+        error?.text ||
+          error?.message ||
+          error
       );
 
       await Swal.fire({
@@ -164,8 +208,7 @@ const ContactForm = () => {
         icon: "error",
         title: "No se pudo enviar",
         text:
-          error.message ||
-          "Intentá nuevamente en unos minutos o contactanos por WhatsApp.",
+          "No pudimos enviar tu consulta en este momento. Intentá nuevamente en unos minutos o contactanos por WhatsApp.",
         confirmButtonColor: "#9A5D51",
       });
     } finally {
@@ -173,9 +216,9 @@ const ContactForm = () => {
     }
   };
 
-  // ==============================
+
   // ESTILOS
-  // ==============================
+
 
   const inputBase =
     "w-full rounded-xl bg-[#F8F7F3] border border-[#D7DDD4] text-[#243128] outline-none " +
@@ -185,9 +228,9 @@ const ContactForm = () => {
   const labelBase =
     "block text-sm font-medium text-[#526054] mb-2";
 
-  // ==============================
-  // COMPONENTE
-  // ==============================
+
+  // RENDER
+
 
   return (
     <section
@@ -214,10 +257,9 @@ const ContactForm = () => {
           </h2>
 
           <p className="mt-4 text-sm leading-relaxed text-[#6D776F] sm:text-base">
-            Enviá tu consulta y te ayudamos a
-            encontrar el equipamiento o la solución
-            de seguridad más adecuada para tu
-            actividad.
+            Enviá tu consulta y te ayudamos a encontrar
+            el equipamiento o la solución de seguridad
+            más adecuada para tu actividad.
           </p>
         </div>
 
@@ -227,7 +269,6 @@ const ContactForm = () => {
           onSubmit={handleSubmit}
           className="grid grid-cols-1 gap-5 md:grid-cols-2"
         >
-
           {/* NOMBRE */}
 
           <div>
@@ -346,6 +387,7 @@ const ContactForm = () => {
                     className="h-4 w-4 animate-spin"
                     fill="none"
                     viewBox="0 0 24 24"
+                    aria-hidden="true"
                   >
                     <circle
                       className="opacity-25"
@@ -368,7 +410,6 @@ const ContactForm = () => {
               ) : (
                 <>
                   Enviar consulta
-
                   <span aria-hidden="true">
                     →
                   </span>

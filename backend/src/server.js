@@ -7,36 +7,26 @@ import path from "path";
 import fs from "fs";
 
 import conectarDB from "./config/db.js";
-import { verificarMailer } from "./config/mailer.js";
 
 // Rutas
-import contactRoutes from "./routes/contact.js";
 import productRoutes from "./routes/productRoutes.js";
 
-// ==============================
 // BASE DE DATOS
-// ==============================
 
 conectarDB();
 
-// ==============================
 // APP
-// ==============================
 
 const app = express();
 
 /*
 Render trabaja detrás de un proxy.
-
-Esto es importante especialmente para
-express-rate-limit del formulario de contacto,
-para poder identificar correctamente la IP.
+Lo dejamos configurado para obtener
+correctamente información de las requests.
 */
 app.set("trust proxy", 1);
 
-// ==============================
 // SEGURIDAD
-// ==============================
 
 app.use(
   helmet({
@@ -46,17 +36,12 @@ app.use(
   })
 );
 
-// ==============================
 // CORS
-// ==============================
 
 const allowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
   "https://epulen.vercel.app",
-
-  // En producción se puede configurar
-  // mediante variable de entorno.
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
@@ -107,9 +92,7 @@ app.use(
   })
 );
 
-// ==============================
 // BODY PARSERS
-// ==============================
 
 app.use(
   express.json({
@@ -124,9 +107,7 @@ app.use(
   })
 );
 
-// ==============================
 // UPLOADS
-// ==============================
 
 const uploadsPath = path.join(
   process.cwd(),
@@ -144,23 +125,14 @@ app.use(
   express.static(uploadsPath)
 );
 
-// ==============================
 // RUTAS API
-// ==============================
-
-app.use(
-  "/api/contacto",
-  contactRoutes
-);
 
 app.use(
   "/api/productos",
   productRoutes
 );
 
-// ==============================
 // LOGIN ADMIN
-// ==============================
 
 app.post("/api/login", (req, res) => {
   const { password } = req.body;
@@ -188,24 +160,19 @@ app.post("/api/login", (req, res) => {
   });
 });
 
-// ==============================
 // HEALTH CHECK
-// ==============================
 
 app.get("/health", (req, res) => {
   return res.status(200).json({
     success: true,
     message: "Server is running",
-
     environment:
       process.env.NODE_ENV ||
       "development",
   });
 });
 
-// ==============================
 // 404 API
-// ==============================
 
 app.use("/api", (req, res) => {
   return res.status(404).json({
@@ -214,9 +181,7 @@ app.use("/api", (req, res) => {
   });
 });
 
-// ==============================
 // ERROR HANDLER
-// ==============================
 
 app.use((err, req, res, next) => {
   console.error(
@@ -242,42 +207,32 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ==============================
 // SERVER
-// ==============================
 
 const PORT =
   process.env.PORT || 5000;
 
-app.listen(PORT, async () => {
+app.listen(PORT, () => {
   console.log("");
 
   console.log(
-    "🌿 EPULÉN SEGURIDAD INDUSTRIAL"
+    "EPULÉN SEGURIDAD INDUSTRIAL"
   );
 
   console.log(
-    `🚀 Servidor operativo en puerto ${PORT}`
+    `Servidor operativo en puerto ${PORT}`
   );
 
   console.log(
-    `🖼️ Carpeta de imágenes: ${uploadsPath}`
+    `Carpeta de imágenes: ${uploadsPath}`
   );
 
   console.log(
-    `🌐 Entorno: ${
+    `Entorno: ${
       process.env.NODE_ENV ||
       "development"
     }`
   );
-
-  console.log("");
-
-  // ==============================
-  // VERIFICAR SERVIDOR DE EMAIL
-  // ==============================
-
-  await verificarMailer();
 
   console.log("");
 });

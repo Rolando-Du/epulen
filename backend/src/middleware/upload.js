@@ -2,43 +2,77 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
-const uploadDir = "uploads/";
+// CARPETA DE UPLOADS
+
+const uploadDir = path.join(
+  process.cwd(),
+  "uploads"
+);
+
+// Crear carpeta si no existe
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+  fs.mkdirSync(uploadDir, {
+    recursive: true,
+  });
 }
 
+// STORAGE
+
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination: (req, file, cb) => {
     cb(null, uploadDir);
   },
-  filename: function (req, file, cb) {
-    // Generamos un nombre: timestamp-numeroaleatorio.extension
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    // path.extname extrae la extensión original (ej: .jpg)
-    cb(null, uniqueSuffix + path.extname(file.originalname).toLowerCase());
+
+  filename: (req, file, cb) => {
+    const extension = path
+      .extname(file.originalname)
+      .toLowerCase();
+
+    const uniqueSuffix =
+      Date.now() +
+      "-" +
+      Math.round(Math.random() * 1e9);
+
+    cb(
+      null,
+      `${uniqueSuffix}${extension}`
+    );
   },
 });
 
+// FILTRO DE ARCHIVOS
+
 const fileFilter = (req, file, cb) => {
-  // Aceptamos solo formatos comunes de imagen
-  const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+  const allowedTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+  ];
 
   if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(
-      new Error("Formato no soportado. Solo se permiten JPG, PNG y WEBP"),
-      false
-    );
+    return cb(null, true);
   }
+
+  return cb(
+    new Error(
+      "Formato no soportado. Solo se permiten imágenes JPG, PNG y WEBP."
+    ),
+    false
+  );
 };
 
+// CONFIGURACIÓN MULTER
+
 const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
+  storage,
+  fileFilter,
+
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB
-    files: 5, 
+    // Máximo 5 MB por imagen
+    fileSize: 5 * 1024 * 1024,
+
+    // Máximo 5 imágenes
+    files: 5,
   },
 });
 
