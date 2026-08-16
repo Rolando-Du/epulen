@@ -50,43 +50,79 @@ const Login = () => {
         .json()
         .catch(() => ({}));
 
+      // ==============================
+      // LOGIN CORRECTO
+      // ==============================
+
       if (
         response.ok &&
-        data?.success
+        data?.success &&
+        data?.token
       ) {
         // ==============================
-        // LIMPIAR LOGIN ANTIGUO
+        // LIMPIAR SESIONES ANTIGUAS
         // ==============================
 
         localStorage.removeItem(
           "admin_auth"
         );
 
+        localStorage.removeItem(
+          "admin_token"
+        );
+
+        sessionStorage.removeItem(
+          "admin_auth"
+        );
+
+        sessionStorage.removeItem(
+          "admin_token"
+        );
+
         // ==============================
-        // SESIÓN ACTUAL
+        // GUARDAR SESIÓN ACTUAL
         // ==============================
 
         /*
-        sessionStorage mantiene la sesión
-        mientras la pestaña esté abierta.
-
-        Al cerrar la pestaña, la sesión
-        desaparece automáticamente.
+        admin_auth se mantiene por ahora
+        porque AppRouter todavía lo utiliza
+        para proteger visualmente /admin.
         */
         sessionStorage.setItem(
           "admin_auth",
           "true"
         );
 
-        navigate("/admin");
-      } else {
-        setError(true);
+        /*
+        Token JWT generado y firmado
+        por el backend.
+        */
+        sessionStorage.setItem(
+          "admin_token",
+          data.token
+        );
+
+        // Limpiar contraseña del estado
         setPassword("");
 
-        setTimeout(() => {
-          setError(false);
-        }, 2500);
+        // Ir al panel
+        navigate("/admin", {
+          replace: true,
+        });
+
+        return;
       }
+
+      // ==============================
+      // LOGIN INCORRECTO
+      // ==============================
+
+      setError(true);
+      setPassword("");
+
+      setTimeout(() => {
+        setError(false);
+      }, 2500);
     } catch (err) {
       console.error(
         "Error de conexión:",
@@ -123,9 +159,7 @@ const Login = () => {
             : "border-[#D9DED5] shadow-[0_24px_70px_rgba(36,49,40,0.10)]",
         ].join(" ")}
       >
-        {/* ============================== */}
         {/* HEADER */}
-        {/* ============================== */}
 
         <div className="mb-9">
           <div
@@ -188,9 +222,7 @@ const Login = () => {
           </p>
         </div>
 
-        {/* ============================== */}
         {/* FORMULARIO */}
-        {/* ============================== */}
 
         <form
           onSubmit={handleLogin}
@@ -242,9 +274,9 @@ const Login = () => {
                 ].join(" ")}
               />
 
-              {/* ============================== */}
+    
               {/* MOSTRAR / OCULTAR PASSWORD */}
-              {/* ============================== */}
+    
 
               <button
                 type="button"
@@ -300,9 +332,9 @@ const Login = () => {
             </div>
           </div>
 
-          {/* ============================== */}
+
           {/* BOTÓN LOGIN */}
-          {/* ============================== */}
+
 
           <button
             type="submit"
@@ -361,9 +393,7 @@ const Login = () => {
           )}
         </form>
 
-        {/* ============================== */}
         {/* FOOTER */}
-        {/* ============================== */}
 
         <div className="mt-8 pt-6 border-t border-[#E1E4DE]">
           <p className="text-[#8B948C] text-xs text-center">

@@ -3,6 +3,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import jwt from "jsonwebtoken";
 
 import conectarDB from "./config/db.js";
 
@@ -115,6 +116,7 @@ app.use(
 app.post("/api/login", (req, res) => {
   const { password } = req.body;
 
+  // Validar que llegue contraseña
   if (!password) {
     return res.status(400).json({
       success: false,
@@ -122,19 +124,45 @@ app.post("/api/login", (req, res) => {
     });
   }
 
-  if (
-    password ===
-    process.env.ADMIN_PASSWORD
-  ) {
-    return res.status(200).json({
-      success: true,
-      message: "Autenticación exitosa",
+  // Validar configuración JWT
+  if (!process.env.JWT_SECRET) {
+    console.error(
+      "❌ JWT_SECRET no está configurado"
+    );
+
+    return res.status(500).json({
+      success: false,
+      message:
+        "Error de configuración del servidor",
     });
   }
 
-  return res.status(401).json({
-    success: false,
-    message: "Contraseña incorrecta",
+  // Validar contraseña administrador
+  if (
+    password !==
+    process.env.ADMIN_PASSWORD
+  ) {
+    return res.status(401).json({
+      success: false,
+      message: "Contraseña incorrecta",
+    });
+  }
+
+  // Generar token JWT
+  const token = jwt.sign(
+    {
+      role: "admin",
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "2h",
+    }
+  );
+
+  return res.status(200).json({
+    success: true,
+    message: "Autenticación exitosa",
+    token,
   });
 });
 

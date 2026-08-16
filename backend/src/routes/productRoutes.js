@@ -9,6 +9,7 @@ import {
 } from "../controllers/productController.js";
 
 import upload from "../middleware/upload.js";
+import authAdmin from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -25,9 +26,11 @@ router.get(
 );
 
 // CREAR PRODUCTO
+// PROTEGIDO CON JWT
 
 router.post(
   "/",
+  authAdmin,
   (req, res, next) => {
     upload.array(
       "imagenes",
@@ -52,9 +55,11 @@ router.post(
 );
 
 // ACTUALIZAR PRODUCTO
+// PROTEGIDO CON JWT
 
 router.put(
   "/:id",
+  authAdmin,
   (req, res, next) => {
     upload.array(
       "imagenes",
@@ -79,9 +84,11 @@ router.put(
 );
 
 // ELIMINAR PRODUCTO
+// PROTEGIDO CON JWT
 
 router.delete(
   "/:id",
+  authAdmin,
   eliminarProducto
 );
 

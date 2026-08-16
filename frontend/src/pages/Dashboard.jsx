@@ -62,6 +62,50 @@ const Dashboard = () => {
   };
 
   // ==============================
+  // SESIÓN ADMIN
+  // ==============================
+
+  const limpiarSesion = () => {
+    sessionStorage.removeItem(
+      "admin_auth"
+    );
+
+    sessionStorage.removeItem(
+      "admin_token"
+    );
+
+    // Limpieza de claves antiguas
+    localStorage.removeItem(
+      "admin_auth"
+    );
+
+    localStorage.removeItem(
+      "admin_token"
+    );
+  };
+
+  const manejarSesionExpirada = async () => {
+    Swal.close();
+
+    limpiarSesion();
+
+    await Swal.fire({
+      ...swalEstilo,
+      icon: "warning",
+      title: "Sesión finalizada",
+      text:
+        "Tu sesión expiró o ya no es válida. Iniciá sesión nuevamente.",
+      confirmButtonText: "Ir al login",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+    });
+
+    navigate("/login", {
+      replace: true,
+    });
+  };
+
+  // ==============================
   // CERRAR SESIÓN
   // ==============================
 
@@ -81,15 +125,7 @@ const Dashboard = () => {
 
     if (!resultado.isConfirmed) return;
 
-    // Sesión actual
-    sessionStorage.removeItem(
-      "admin_auth"
-    );
-
-    // Eliminar cualquier sesión antigua
-    localStorage.removeItem(
-      "admin_auth"
-    );
+    limpiarSesion();
 
     navigate("/login", {
       replace: true,
@@ -516,6 +552,16 @@ const Dashboard = () => {
   ) => {
     e.preventDefault();
 
+    const token =
+      sessionStorage.getItem(
+        "admin_token"
+      );
+
+    if (!token) {
+      await manejarSesionExpirada();
+      return;
+    }
+
     if (
       producto.tallas.length ===
       0
@@ -611,9 +657,22 @@ const Dashboard = () => {
             ? "PUT"
             : "POST",
 
+          headers: {
+            Authorization:
+              `Bearer ${token}`,
+          },
+
           body: formData,
         }
       );
+
+      if (
+        res.status === 401 ||
+        res.status === 403
+      ) {
+        await manejarSesionExpirada();
+        return;
+      }
 
       if (!res.ok) {
         let mensaje =
@@ -623,9 +682,13 @@ const Dashboard = () => {
           const data =
             await res.json();
 
-          if (data?.msg) {
+          if (
+            data?.msg ||
+            data?.message
+          ) {
             mensaje =
-              data.msg;
+              data.msg ||
+              data.message;
           }
         } catch {
           // Sin cuerpo JSON
@@ -682,6 +745,16 @@ const Dashboard = () => {
   const eliminarProd = async (
     id
   ) => {
+    const token =
+      sessionStorage.getItem(
+        "admin_token"
+      );
+
+    if (!token) {
+      await manejarSesionExpirada();
+      return;
+    }
+
     const resultado =
       await Swal.fire({
         ...swalEstilo,
@@ -721,12 +794,44 @@ const Dashboard = () => {
         `${API_URL}/api/productos/${id}`,
         {
           method: "DELETE",
+
+          headers: {
+            Authorization:
+              `Bearer ${token}`,
+          },
         }
       );
 
+      if (
+        res.status === 401 ||
+        res.status === 403
+      ) {
+        await manejarSesionExpirada();
+        return;
+      }
+
       if (!res.ok) {
+        let mensaje =
+          "No se pudo eliminar el producto.";
+
+        try {
+          const data =
+            await res.json();
+
+          if (
+            data?.msg ||
+            data?.message
+          ) {
+            mensaje =
+              data.msg ||
+              data.message;
+          }
+        } catch {
+          // Sin cuerpo JSON
+        }
+
         throw new Error(
-          "No se pudo eliminar"
+          mensaje
         );
       }
 
@@ -760,6 +865,7 @@ const Dashboard = () => {
           "Error al eliminar",
 
         text:
+          error.message ||
           "No se pudo eliminar el producto.",
       });
     }
@@ -917,9 +1023,7 @@ const Dashboard = () => {
 
           <div className="flex flex-wrap gap-3 sm:gap-4 items-stretch sm:items-center">
 
-            {/* ============================== */}
             {/* CERRAR SESIÓN */}
-            {/* ============================== */}
 
             <button
               type="button"
@@ -945,9 +1049,7 @@ const Dashboard = () => {
               </span>
             </button>
 
-            {/* ============================== */}
             {/* REPORTE PDF */}
-            {/* ============================== */}
 
             <button
               type="button"
@@ -1062,9 +1164,9 @@ const Dashboard = () => {
               className="space-y-5"
             >
 
-              {/* ============================== */}
+
               {/* PREVIEW */}
-              {/* ============================== */}
+
 
               <div className="bg-[#F7F6F2] rounded-3xl min-h-52.5 p-5 border border-[#E0E3DD] flex items-center justify-center">
                 {imagenesFiles.length >
@@ -1108,9 +1210,9 @@ const Dashboard = () => {
                 )}
               </div>
 
-              {/* ============================== */}
+
               {/* NOMBRE */}
-              {/* ============================== */}
+
 
               <div>
                 <label className="block text-sm font-medium text-[#526054] mb-2">
@@ -1138,9 +1240,9 @@ const Dashboard = () => {
                 />
               </div>
 
-              {/* ============================== */}
+
               {/* PRECIO / CATEGORÍA */}
-              {/* ============================== */}
+
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -1197,9 +1299,9 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              {/* ============================== */}
+
               {/* TALLES */}
-              {/* ============================== */}
+
 
               <div className="bg-[#F3F5F0] p-4 sm:p-5 rounded-2xl border border-[#DCE1D8]">
                 <div className="mb-4">
@@ -1315,9 +1417,9 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              {/* ============================== */}
+
               {/* DESCRIPCIÓN */}
-              {/* ============================== */}
+
 
               <div>
                 <label className="block text-sm font-medium text-[#526054] mb-2">
@@ -1343,9 +1445,9 @@ const Dashboard = () => {
                 />
               </div>
 
-              {/* ============================== */}
+
               {/* DESTACADO */}
-              {/* ============================== */}
+
 
               <label className="flex items-center justify-between gap-4 p-4 rounded-2xl border border-[#DCE1D8] bg-[#FAF9F5] cursor-pointer">
                 <div>
@@ -1378,9 +1480,9 @@ const Dashboard = () => {
                 />
               </label>
 
-              {/* ============================== */}
+
               {/* IMÁGENES / GUARDAR */}
-              {/* ============================== */}
+
 
               <div className="grid grid-cols-1 sm:grid-cols-[1fr_1.2fr] gap-3 pt-1">
                 <div className="relative bg-[#F7F6F2] p-4 rounded-xl text-center border border-[#D6DCD3] cursor-pointer hover:bg-[#F0F2ED] transition-colors">
@@ -1441,9 +1543,7 @@ const Dashboard = () => {
               </h2>
             </div>
 
-            {/* ============================== */}
             {/* BUSCADOR / FILTRO */}
-            {/* ============================== */}
 
             <div className="grid grid-cols-1 sm:grid-cols-[1fr_170px] gap-3 mb-6">
               <div className="relative">
@@ -1500,9 +1600,7 @@ const Dashboard = () => {
               </select>
             </div>
 
-            {/* ============================== */}
             {/* PRODUCTOS */}
-            {/* ============================== */}
 
             <div className="overflow-y-auto space-y-3 pr-1 custom-scrollbar">
               {productosFiltrados.length ===
