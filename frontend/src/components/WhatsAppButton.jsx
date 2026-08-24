@@ -1,28 +1,30 @@
-import React, { useMemo } from "react";
+import React from "react";
 
 const WhatsAppButton = () => {
-  const telefono = "542944682812";
-  const mensaje =
+  const phoneNumber = "542944682812";
+
+  const message =
     "Hola, me gustaría solicitar una cotización de equipos de seguridad.";
 
-  const url = useMemo(() => {
-    return `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
-  }, [telefono, mensaje]);
+  const whatsappUrl =
+    `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
 
   return (
     <a
-      href={url}
+      href={whatsappUrl}
       target="_blank"
       rel="noopener noreferrer"
       className="group fixed bottom-5 right-5 z-50 sm:bottom-8 sm:right-8"
       aria-label="Contactar por WhatsApp"
     >
-      {/* Tooltip desktop */}
+      {/* DESKTOP TOOLTIP */}
+
       <span className="pointer-events-none absolute bottom-full right-0 mb-3 hidden whitespace-nowrap rounded-lg bg-[#243128] px-3 py-2 text-xs font-medium text-white opacity-0 shadow-lg transition-all duration-200 group-hover:-translate-y-1 group-hover:opacity-100 sm:block">
         Consultar por WhatsApp
       </span>
 
-      {/* Botón */}
+      {/* BUTTON */}
+
       <div className="relative flex h-14 w-14 items-center justify-center rounded-full border border-[#CED8CB] bg-[#405A47] text-white shadow-[0_14px_35px_rgba(36,49,40,0.18)] transition-all duration-300 hover:-translate-y-1 hover:bg-[#334A3A] hover:shadow-[0_18px_40px_rgba(36,49,40,0.24)] active:scale-95 sm:h-16 sm:w-16">
         <svg
           className="h-6 w-6 sm:h-7 sm:w-7"

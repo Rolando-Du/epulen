@@ -1,16 +1,11 @@
 import jwt from "jsonwebtoken";
 
-// ==============================
-// AUTENTICACIÓN ADMIN
-// ==============================
-
 const authAdmin = (req, res, next) => {
   try {
-    const authorization =
+    const authorizationHeader =
       req.headers.authorization;
 
-    // Validar que exista el header
-    if (!authorization) {
+    if (!authorizationHeader) {
       return res.status(401).json({
         success: false,
         message:
@@ -18,10 +13,8 @@ const authAdmin = (req, res, next) => {
       });
     }
 
-    // Debe venir como:
-    // Authorization: Bearer TOKEN
     if (
-      !authorization.startsWith(
+      !authorizationHeader.startsWith(
         "Bearer "
       )
     ) {
@@ -33,8 +26,7 @@ const authAdmin = (req, res, next) => {
     }
 
     const token =
-      authorization
-        .split(" ")[1];
+      authorizationHeader.split(" ")[1];
 
     if (!token) {
       return res.status(401).json({
@@ -46,7 +38,7 @@ const authAdmin = (req, res, next) => {
 
     if (!process.env.JWT_SECRET) {
       console.error(
-        "❌ JWT_SECRET no está configurado"
+        "JWT_SECRET no está configurado"
       );
 
       return res.status(500).json({
@@ -56,27 +48,19 @@ const authAdmin = (req, res, next) => {
       });
     }
 
-    // Verificar firma y expiración
-    const decoded =
-      jwt.verify(
-        token,
-        process.env.JWT_SECRET
-      );
+    const payload = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
 
-    // Confirmar que sea admin
-    if (
-      decoded.role !== "admin"
-    ) {
+    if (payload.role !== "admin") {
       return res.status(403).json({
         success: false,
-        message:
-          "Acceso denegado.",
+        message: "Acceso denegado.",
       });
     }
 
-    // Guardamos los datos del token
-    // por si los necesitamos después
-    req.admin = decoded;
+    req.admin = payload;
 
     next();
   } catch (error) {
@@ -97,20 +81,18 @@ const authAdmin = (req, res, next) => {
     ) {
       return res.status(401).json({
         success: false,
-        message:
-          "Token inválido.",
+        message: "Token inválido.",
       });
     }
 
     console.error(
-      "❌ Error validando JWT:",
+      "Error validando JWT:",
       error
     );
 
     return res.status(401).json({
       success: false,
-      message:
-        "No autorizado.",
+      message: "No autorizado.",
     });
   }
 };

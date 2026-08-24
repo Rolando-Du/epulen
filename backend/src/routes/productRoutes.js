@@ -1,11 +1,11 @@
 import express from "express";
 
 import {
-  obtenerProductos,
-  obtenerProductoPorId,
-  nuevoProducto,
-  eliminarProducto,
-  actualizarProducto,
+  getProducts,
+  getProductById,
+  createProduct,
+  updateProduct,
+  deleteProduct,
 } from "../controllers/productController.js";
 
 import upload from "../middleware/upload.js";
@@ -13,83 +13,47 @@ import authAdmin from "../middleware/auth.js";
 
 const router = express.Router();
 
-// RUTAS PÚBLICAS
+const uploadImages = (req, res, next) => {
+  upload.array("images", 5)(
+    req,
+    res,
+    (error) => {
+      if (error) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Error al procesar las imágenes",
+          error: error.message,
+        });
+      }
 
-router.get(
-  "/",
-  obtenerProductos
-);
+      next();
+    }
+  );
+};
 
-router.get(
-  "/:id",
-  obtenerProductoPorId
-);
+router.get("/", getProducts);
 
-// CREAR PRODUCTO
-// PROTEGIDO CON JWT
+router.get("/:id", getProductById);
 
 router.post(
   "/",
   authAdmin,
-  (req, res, next) => {
-    upload.array(
-      "imagenes",
-      5
-    )(req, res, (err) => {
-      if (err) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message:
-              "Error al subir imágenes",
-            error:
-              err.message,
-          });
-      }
-
-      next();
-    });
-  },
-  nuevoProducto
+  uploadImages,
+  createProduct
 );
-
-// ACTUALIZAR PRODUCTO
-// PROTEGIDO CON JWT
 
 router.put(
   "/:id",
   authAdmin,
-  (req, res, next) => {
-    upload.array(
-      "imagenes",
-      5
-    )(req, res, (err) => {
-      if (err) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message:
-              "Error al actualizar imágenes",
-            error:
-              err.message,
-          });
-      }
-
-      next();
-    });
-  },
-  actualizarProducto
+  uploadImages,
+  updateProduct
 );
-
-// ELIMINAR PRODUCTO
-// PROTEGIDO CON JWT
 
 router.delete(
   "/:id",
   authAdmin,
-  eliminarProducto
+  deleteProduct
 );
 
 export default router;

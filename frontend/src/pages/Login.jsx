@@ -11,12 +11,10 @@ const Login = () => {
 
   const API_URL = import.meta.env.VITE_API_URL || "";
 
-  // ==============================
   // LOGIN
-  // ==============================
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  const handleLogin = async (event) => {
+    event.preventDefault();
 
     if (!password || isLoading) return;
 
@@ -50,18 +48,15 @@ const Login = () => {
         .json()
         .catch(() => ({}));
 
-      // ==============================
-      // LOGIN CORRECTO
-      // ==============================
+      // SUCCESSFUL LOGIN
 
       if (
         response.ok &&
         data?.success &&
         data?.token
       ) {
-        // ==============================
-        // LIMPIAR SESIONES ANTIGUAS
-        // ==============================
+    
+        // CLEAR PREVIOUS SESSIONS
 
         localStorage.removeItem(
           "admin_auth"
@@ -79,15 +74,8 @@ const Login = () => {
           "admin_token"
         );
 
-        // ==============================
-        // GUARDAR SESIÓN ACTUAL
-        // ==============================
+        // SAVE CURRENT SESSION
 
-        /*
-        admin_auth se mantiene por ahora
-        porque AppRouter todavía lo utiliza
-        para proteger visualmente /admin.
-        */
         sessionStorage.setItem(
           "admin_auth",
           "true"
@@ -102,10 +90,10 @@ const Login = () => {
           data.token
         );
 
-        // Limpiar contraseña del estado
+        // CLEAR PASSWORD STATE
         setPassword("");
 
-        // Ir al panel
+        // GO TO ADMIN PANEL
         navigate("/admin", {
           replace: true,
         });
@@ -113,9 +101,9 @@ const Login = () => {
         return;
       }
 
-      // ==============================
-      // LOGIN INCORRECTO
-      // ==============================
+  
+      // INVALID LOGIN
+  
 
       setError(true);
       setPassword("");
@@ -123,10 +111,10 @@ const Login = () => {
       setTimeout(() => {
         setError(false);
       }, 2500);
-    } catch (err) {
+    } catch (error) {
       console.error(
         "Error de conexión:",
-        err
+        error
       );
 
       alert(
@@ -139,7 +127,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-[#EEF0E9] flex items-center justify-center px-5 relative overflow-hidden">
-      {/* Decoración */}
+      {/* DECORATION */}
 
       <div className="pointer-events-none absolute -top-40 -left-40 w-125 h-125 bg-[#9EAC98]/20 blur-[130px] rounded-full" />
 
@@ -222,7 +210,7 @@ const Login = () => {
           </p>
         </div>
 
-        {/* FORMULARIO */}
+        {/* FORM */}
 
         <form
           onSubmit={handleLogin}
@@ -250,9 +238,9 @@ const Login = () => {
                 }
                 placeholder="Ingresá tu contraseña"
                 value={password}
-                onChange={(e) =>
+                onChange={(event) =>
                   setPassword(
-                    e.target.value
+                    event.target.value
                   )
                 }
                 disabled={isLoading}
@@ -275,14 +263,14 @@ const Login = () => {
               />
 
     
-              {/* MOSTRAR / OCULTAR PASSWORD */}
+              {/* SHOW / HIDE PASSWORD */}
     
 
               <button
                 type="button"
                 onClick={() =>
                   setShowPassword(
-                    (v) => !v
+                    (value) => !value
                   )
                 }
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8B948C] hover:text-[#405A47] transition-colors"
@@ -333,7 +321,7 @@ const Login = () => {
           </div>
 
 
-          {/* BOTÓN LOGIN */}
+          {/* LOGIN BUTTON */}
 
 
           <button

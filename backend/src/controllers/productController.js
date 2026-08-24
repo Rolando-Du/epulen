@@ -2,11 +2,43 @@ import Product from "../models/Product.js";
 import cloudinary from "../config/cloudinary.js";
 import mongoose from "mongoose";
 
-// ==============================
-// SUBIR IMAGEN A CLOUDINARY
-// ==============================
+const PROTECTION_SUBCATEGORIES = [
+  "Protección visual",
+  "Protección craneal",
+  "Protección auditiva",
+  "Protección respiratoria",
+];
 
-const subirImagenCloudinary = (file) => {
+const normalizeCategory = (category = "") => {
+  return category.trim();
+};
+
+const normalizeSubcategory = (
+  category,
+  subcategory = ""
+) => {
+  if (category !== "Protección") {
+    return "";
+  }
+
+  const value = subcategory.trim();
+
+  if (!value) {
+    return "";
+  }
+
+  if (
+    !PROTECTION_SUBCATEGORIES.includes(value)
+  ) {
+    throw new Error(
+      "La subcategoría de Protección no es válida"
+    );
+  }
+
+  return value;
+};
+
+const uploadImageToCloudinary = (file) => {
   return new Promise((resolve, reject) => {
     const uploadStream =
       cloudinary.uploader.upload_stream(
@@ -30,11 +62,7 @@ const subirImagenCloudinary = (file) => {
   });
 };
 
-// ==============================
-// ELIMINAR IMAGEN DE CLOUDINARY
-// ==============================
-
-const eliminarImagenCloudinary = async (
+const deleteImageFromCloudinary = async (
   publicId
 ) => {
   if (!publicId) return;
@@ -49,112 +77,98 @@ const eliminarImagenCloudinary = async (
     );
   } catch (error) {
     console.error(
-      `⚠️ No se pudo eliminar la imagen ${publicId} de Cloudinary:`,
+      `No se pudo eliminar la imagen ${publicId} de Cloudinary:`,
       error.message
     );
   }
 };
 
-// ==============================
-// 1. OBTENER TODOS LOS PRODUCTOS
-// ==============================
-
-export const obtenerProductos = async (
+export const getProducts = async (
   req,
   res
 ) => {
   try {
-    const productos =
-      await Product.find().sort({
-        creadoEn: -1,
-      });
+    const products = await Product.find().sort({
+      createdAt: -1,
+    });
 
-    return res.json(productos);
+    return res.json(products);
   } catch (error) {
     console.error(
-      "❌ Error al obtener productos:",
+      "Error al obtener productos:",
       error
     );
 
     return res.status(500).json({
-      msg: "Error al obtener productos",
+      message: "Error al obtener productos",
     });
   }
 };
 
-// ==============================
-// 2. OBTENER PRODUCTO POR ID
-// ==============================
-
-export const obtenerProductoPorId =
-  async (req, res) => {
-    try {
-      const { id } = req.params;
-
-      if (
-        !mongoose.Types.ObjectId.isValid(
-          id
-        )
-      ) {
-        return res.status(400).json({
-          msg: "ID de producto no válido",
-        });
-      }
-
-      const producto =
-        await Product.findById(id);
-
-      if (!producto) {
-        return res.status(404).json({
-          msg: "Producto no encontrado",
-        });
-      }
-
-      return res.json(producto);
-    } catch (error) {
-      console.error(
-        "❌ Error al buscar producto:",
-        error
-      );
-
-      return res.status(500).json({
-        msg: "Error al buscar el producto",
-      });
-    }
-  };
-
-// ==============================
-// 3. CREAR PRODUCTO
-// ==============================
-
-export const nuevoProducto = async (
+export const getProductById = async (
   req,
   res
 ) => {
-  const imagenesSubidas = [];
+  try {
+    const { id } = req.params;
+
+    if (
+      !mongoose.Types.ObjectId.isValid(id)
+    ) {
+      return res.status(400).json({
+        message:
+          "ID de producto no válido",
+      });
+    }
+
+    const product =
+      await Product.findById(id);
+
+    if (!product) {
+      return res.status(404).json({
+        message:
+          "Producto no encontrado",
+      });
+    }
+
+    return res.json(product);
+  } catch (error) {
+    console.error(
+      "Error al buscar producto:",
+      error
+    );
+
+    return res.status(500).json({
+      message:
+        "Error al buscar el producto",
+    });
+  }
+};
+
+export const createProduct = async (
+  req,
+  res
+) => {
+  const uploadedImages = [];
 
   try {
     const {
-      nombre,
-      descripcion,
-      categoria,
-      precio,
-      tallas,
-      destacado,
+      name,
+      description,
+      category,
+      subcategory,
+      price,
+      featured,
     } = req.body;
 
-    // ==============================
-    // VALIDACIONES
-    // ==============================
-
     if (
-      !nombre ||
-      !descripcion ||
-      !categoria ||
-      precio === undefined
+      !name ||
+      !description ||
+      !category ||
+      price === undefined
     ) {
       return res.status(400).json({
-        msg:
+        message:
           "Faltan datos obligatorios del producto",
       });
     }
@@ -164,411 +178,288 @@ export const nuevoProducto = async (
       req.files.length === 0
     ) {
       return res.status(400).json({
-        msg:
+        message:
           "Debes subir al menos una imagen",
       });
     }
 
-    // ==============================
-    // TALLAS
-    // ==============================
+    const normalizedCategory =
+      normalizeCategory(category);
 
-    let tallasParseadas = [];
-
-    try {
-      tallasParseadas =
-        typeof tallas === "string"
-          ? JSON.parse(tallas)
-          : tallas || [];
-
-      if (
-        !Array.isArray(
-          tallasParseadas
-        )
-      ) {
-        throw new Error();
-      }
-    } catch {
-      return res.status(400).json({
-        msg: "Formato de tallas inválido",
-      });
-    }
-
-    // ==============================
-    // SUBIR IMÁGENES A CLOUDINARY
-    // ==============================
+    const normalizedSubcategory =
+      normalizeSubcategory(
+        normalizedCategory,
+        subcategory
+      );
 
     for (const file of req.files) {
-      const resultado =
-        await subirImagenCloudinary(
+      const result =
+        await uploadImageToCloudinary(
           file
         );
 
-      imagenesSubidas.push({
-        url:
-          resultado.secure_url,
-
-        publicId:
-          resultado.public_id,
+      uploadedImages.push({
+        url: result.secure_url,
+        publicId: result.public_id,
       });
     }
 
-    // ==============================
-    // CREAR PRODUCTO
-    // ==============================
-
-    const producto = new Product({
-      nombre:
-        nombre.trim(),
-
-      descripcion:
-        descripcion.trim(),
-
-      categoria:
-        categoria.trim(),
-
-      precio:
-        Number(precio),
-
-      tallas:
-        tallasParseadas,
-
-      destacado:
-        destacado === "true" ||
-        destacado === true,
-
-      imagenes:
-        imagenesSubidas.map(
-          (imagen) =>
-            imagen.url
-        ),
-
-      imagenesPublicIds:
-        imagenesSubidas.map(
-          (imagen) =>
-            imagen.publicId
+    const product = new Product({
+      name: name.trim(),
+      description: description.trim(),
+      category: normalizedCategory,
+      subcategory: normalizedSubcategory,
+      price: Number(price),
+      featured:
+        featured === "true" ||
+        featured === true,
+      images: uploadedImages.map(
+        (image) => image.url
+      ),
+      imagePublicIds:
+        uploadedImages.map(
+          (image) => image.publicId
         ),
     });
 
-    await producto.save();
+    await product.save();
 
     console.log(
-      `✅ Producto creado: ${producto.nombre}`
+      `Producto creado: ${product.name}`
     );
 
     return res
       .status(201)
-      .json(producto);
+      .json(product);
   } catch (error) {
     console.error(
-      "❌ Error en nuevoProducto:",
+      "Error al crear producto:",
       error
     );
 
-    // ==============================
-    // ROLLBACK CLOUDINARY
-    // ==============================
-
-    /*
-    Si Cloudinary recibió imágenes
-    pero MongoDB falló, eliminamos
-    las imágenes recién subidas.
-    */
-
-    for (
-      const imagen of
-      imagenesSubidas
-    ) {
-      await eliminarImagenCloudinary(
-        imagen.publicId
+    for (const image of uploadedImages) {
+      await deleteImageFromCloudinary(
+        image.publicId
       );
     }
 
     return res.status(400).json({
-      msg:
+      message:
         error.message ||
         "Error al crear producto",
     });
   }
 };
 
-// ==============================
-// 4. ACTUALIZAR PRODUCTO
-// ==============================
+export const updateProduct = async (
+  req,
+  res
+) => {
+  const newUploadedImages = [];
 
-export const actualizarProducto =
-  async (req, res) => {
-    const nuevasImagenesSubidas = [];
+  try {
+    const { id } = req.params;
 
-    try {
-      const { id } = req.params;
-
-      if (
-        !mongoose.Types.ObjectId.isValid(
-          id
-        )
-      ) {
-        return res.status(400).json({
-          msg: "ID no válido",
-        });
-      }
-
-      const producto =
-        await Product.findById(id);
-
-      if (!producto) {
-        return res.status(404).json({
-          msg:
-            "No existe el producto",
-        });
-      }
-
-      // IMÁGENES ACTUALES
-
-      const publicIdsAnteriores = [
-        ...(
-          producto.imagenesPublicIds ||
-          []
-        ),
-      ];
-
-      // ACTUALIZAR CAMPOS
-
-      if (req.body.nombre) {
-        producto.nombre =
-          req.body.nombre.trim();
-      }
-
-      if (req.body.descripcion) {
-        producto.descripcion =
-          req.body.descripcion.trim();
-      }
-
-      if (req.body.categoria) {
-        producto.categoria =
-          req.body.categoria.trim();
-      }
-
-      if (
-        req.body.precio !== undefined
-      ) {
-        producto.precio =
-          Number(req.body.precio);
-      }
-
-      if (
-        req.body.destacado !==
-        undefined
-      ) {
-        producto.destacado =
-          req.body.destacado ===
-            "true" ||
-          req.body.destacado === true;
-      }
-
-      // TALLAS
-
-      if (
-        req.body.tallas !== undefined
-      ) {
-        try {
-          const tallasParseadas =
-            typeof req.body.tallas ===
-            "string"
-              ? JSON.parse(
-                  req.body.tallas
-                )
-              : req.body.tallas;
-
-          if (
-            !Array.isArray(
-              tallasParseadas
-            )
-          ) {
-            throw new Error();
-          }
-
-          producto.tallas =
-            tallasParseadas;
-        } catch {
-          return res
-            .status(400)
-            .json({
-              msg:
-                "Formato de tallas inválido",
-            });
-        }
-      }
-
-      // REEMPLAZAR IMÁGENES
-
-      if (
-        req.files &&
-        req.files.length > 0
-      ) {
-        /*
-        Primero subimos las imágenes
-        nuevas a Cloudinary.
-
-        No eliminamos las anteriores
-        hasta guardar correctamente
-        el producto en MongoDB.
-        */
-
-        for (
-          const file of req.files
-        ) {
-          const resultado =
-            await subirImagenCloudinary(
-              file
-            );
-
-          nuevasImagenesSubidas.push({
-            url:
-              resultado.secure_url,
-
-            publicId:
-              resultado.public_id,
-          });
-        }
-
-        producto.imagenes =
-          nuevasImagenesSubidas.map(
-            (imagen) =>
-              imagen.url
-          );
-
-        producto.imagenesPublicIds =
-          nuevasImagenesSubidas.map(
-            (imagen) =>
-              imagen.publicId
-          );
-      }
-
-      // GUARDAR EN MONGODB
-
-      await producto.save();
-
-      // ELIMINAR IMÁGENES ANTERIORES
-
-      if (
-        nuevasImagenesSubidas.length >
-        0
-      ) {
-        for (
-          const publicId of
-          publicIdsAnteriores
-        ) {
-          await eliminarImagenCloudinary(
-            publicId
-          );
-        }
-      }
-
-      console.log(
-        `✅ Producto actualizado: ${producto.nombre}`
-      );
-
-      return res.json(producto);
-    } catch (error) {
-      console.error(
-        "❌ Error en actualizarProducto:",
-        error
-      );
-
-      // ROLLBACK CLOUDINARY
-
-      /*
-      Si algo falla después de subir
-      las imágenes nuevas, eliminamos
-      solamente esas imágenes.
-      */
-
-      for (
-        const imagen of
-        nuevasImagenesSubidas
-      ) {
-        await eliminarImagenCloudinary(
-          imagen.publicId
-        );
-      }
-
-      return res.status(500).json({
-        msg:
-          error.message ||
-          "Error interno al actualizar",
+    if (
+      !mongoose.Types.ObjectId.isValid(id)
+    ) {
+      return res.status(400).json({
+        message: "ID no válido",
       });
     }
-  };
 
-// ==============================
-// 5. ELIMINAR PRODUCTO
-// ==============================
+    const product =
+      await Product.findById(id);
 
-export const eliminarProducto =
-  async (req, res) => {
-    try {
-      const { id } = req.params;
+    if (!product) {
+      return res.status(404).json({
+        message:
+          "No existe el producto",
+      });
+    }
 
-      if (
-        !mongoose.Types.ObjectId.isValid(
-          id
-        )
-      ) {
-        return res.status(400).json({
-          msg: "ID no válido",
+    const previousPublicIds = [
+      ...(product.imagePublicIds || []),
+    ];
+
+    if (req.body.name) {
+      product.name =
+        req.body.name.trim();
+    }
+
+    if (req.body.description) {
+      product.description =
+        req.body.description.trim();
+    }
+
+    let finalCategory =
+      product.category;
+
+    if (req.body.category) {
+      finalCategory =
+        normalizeCategory(
+          req.body.category
+        );
+
+      product.category =
+        finalCategory;
+    }
+
+    if (
+      finalCategory !== "Protección"
+    ) {
+      product.subcategory = "";
+    } else if (
+      req.body.subcategory !==
+      undefined
+    ) {
+      product.subcategory =
+        normalizeSubcategory(
+          finalCategory,
+          req.body.subcategory
+        );
+    }
+
+    if (
+      req.body.price !== undefined
+    ) {
+      product.price = Number(
+        req.body.price
+      );
+    }
+
+    if (
+      req.body.featured !== undefined
+    ) {
+      product.featured =
+        req.body.featured === "true" ||
+        req.body.featured === true;
+    }
+
+    if (
+      req.files &&
+      req.files.length > 0
+    ) {
+      for (const file of req.files) {
+        const result =
+          await uploadImageToCloudinary(
+            file
+          );
+
+        newUploadedImages.push({
+          url: result.secure_url,
+          publicId: result.public_id,
         });
       }
 
-      const producto =
-        await Product.findById(id);
+      product.images =
+        newUploadedImages.map(
+          (image) => image.url
+        );
 
-      if (!producto) {
-        return res.status(404).json({
-          msg:
-            "Producto no encontrado",
-        });
-      }
+      product.imagePublicIds =
+        newUploadedImages.map(
+          (image) => image.publicId
+        );
+    }
 
-      // IDS DE CLOUDINARY
+    await product.save();
 
-      const publicIds = [
-        ...(
-          producto.imagenesPublicIds ||
-          []
-        ),
-      ];
-
-      // ELIMINAR PRODUCTO
-
-      await producto.deleteOne();
-
-      // ELIMINAR IMÁGENES CLOUDINARY
-
+    if (
+      newUploadedImages.length > 0
+    ) {
       for (
-        const publicId of publicIds
+        const publicId of
+        previousPublicIds
       ) {
-        await eliminarImagenCloudinary(
+        await deleteImageFromCloudinary(
           publicId
         );
       }
+    }
 
-      console.log(
-        `✅ Producto eliminado: ${producto.nombre}`
+    console.log(
+      `Producto actualizado: ${product.name}`
+    );
+
+    return res.json(product);
+  } catch (error) {
+    console.error(
+      "Error al actualizar producto:",
+      error
+    );
+
+    for (
+      const image of
+      newUploadedImages
+    ) {
+      await deleteImageFromCloudinary(
+        image.publicId
       );
+    }
 
-      return res.json({
-        msg:
-          "Eliminado correctamente",
-      });
-    } catch (error) {
-      console.error(
-        "❌ Error en eliminarProducto:",
-        error
-      );
+    return res.status(500).json({
+      message:
+        error.message ||
+        "Error interno al actualizar",
+    });
+  }
+};
 
-      return res.status(500).json({
-        msg: "Error al eliminar",
+export const deleteProduct = async (
+  req,
+  res
+) => {
+  try {
+    const { id } = req.params;
+
+    if (
+      !mongoose.Types.ObjectId.isValid(id)
+    ) {
+      return res.status(400).json({
+        message: "ID no válido",
       });
     }
-  };
+
+    const product =
+      await Product.findById(id);
+
+    if (!product) {
+      return res.status(404).json({
+        message:
+          "Producto no encontrado",
+      });
+    }
+
+    const publicIds = [
+      ...(product.imagePublicIds || []),
+    ];
+
+    await product.deleteOne();
+
+    for (const publicId of publicIds) {
+      await deleteImageFromCloudinary(
+        publicId
+      );
+    }
+
+    console.log(
+      `Producto eliminado: ${product.name}`
+    );
+
+    return res.json({
+      message:
+        "Eliminado correctamente",
+    });
+  } catch (error) {
+    console.error(
+      "Error al eliminar producto:",
+      error
+    );
+
+    return res.status(500).json({
+      message:
+        "Error al eliminar",
+    });
+  }
+};

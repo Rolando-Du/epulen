@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const productSchema = mongoose.Schema(
   {
-    nombre: {
+    name: {
       type: String,
       required: [true, "El nombre es obligatorio"],
       trim: true,
@@ -12,15 +12,16 @@ const productSchema = mongoose.Schema(
       ],
     },
 
-    descripcion: {
+    description: {
       type: String,
       required: [
         true,
         "La descripción es obligatoria",
       ],
+      trim: true,
     },
 
-    categoria: {
+    category: {
       type: String,
       required: [
         true,
@@ -29,7 +30,20 @@ const productSchema = mongoose.Schema(
       trim: true,
     },
 
-    precio: {
+    subcategory: {
+      type: String,
+      trim: true,
+      default: "",
+      enum: [
+        "",
+        "Protección visual",
+        "Protección craneal",
+        "Protección auditiva",
+        "Protección respiratoria",
+      ],
+    },
+
+    price: {
       type: Number,
       required: [
         true,
@@ -39,146 +53,56 @@ const productSchema = mongoose.Schema(
         0,
         "El precio no puede ser negativo",
       ],
-      set: (v) => Math.round(v),
+      set: (value) => Math.round(value),
     },
 
-    destacado: {
+    featured: {
       type: Boolean,
       default: false,
     },
 
-  
-    // IMÁGENES
-  
-
-    /*
-    Guarda las URLs públicas.
-
-    Productos antiguos:
-    /uploads/archivo.webp
-
-    Productos nuevos:
-    https://res.cloudinary.com/...
-    */
-    imagenes: {
+    images: {
       type: [String],
-
       required: [
         true,
         "Al menos una imagen es obligatoria",
       ],
-
       validate: {
-        validator: function (v) {
+        validator: function (value) {
           return (
-            Array.isArray(v) &&
-            v.length > 0
+            Array.isArray(value) &&
+            value.length > 0
           );
         },
-
         message:
           "Debes subir al menos una imagen",
       },
     },
 
-    /*
-    IDs internos de Cloudinary.
-
-    Se utilizan para eliminar imágenes
-    cuando se actualiza o elimina un producto.
-
-    Los productos antiguos simplemente
-    tendrán este array vacío.
-    */
-    imagenesPublicIds: {
+    imagePublicIds: {
       type: [String],
       default: [],
     },
-
-  
-    // TALLAS
-  
-
-    tallas: [
-      {
-        talle: {
-          type: String,
-          required: true,
-        },
-
-        stock: {
-          type: Number,
-          required: true,
-          min: 0,
-          default: 0,
-        },
-      },
-    ],
-
-    stockTotal: {
-      type: Number,
-      default: 0,
-    },
-
-    creadoEn: {
-      type: Date,
-      default: Date.now,
-    },
   },
-
   {
     toJSON: {
       virtuals: true,
     },
-
     toObject: {
       virtuals: true,
     },
-
     timestamps: true,
   }
 );
 
-// MIDDLEWARES
-
-productSchema.pre(
-  "save",
-  async function () {
-    if (
-      this.tallas &&
-      this.tallas.length > 0
-    ) {
-      this.stockTotal =
-        this.tallas.reduce(
-          (acc, t) =>
-            acc +
-            (Number(t.stock) || 0),
-          0
-        );
-    } else {
-      this.stockTotal = 0;
-    }
-  }
-);
-
-// VIRTUALS
-
-// Stock total
 productSchema
-  .virtual("stock")
-  .get(function () {
-    return this.stockTotal;
-  });
-
-// Primera imagen del producto
-productSchema
-  .virtual("imagenUrl")
+  .virtual("imageUrl")
   .get(function () {
     if (
-      this.imagenes &&
-      this.imagenes.length > 0
+      this.images &&
+      this.images.length > 0
     ) {
-      return this.imagenes[0];
+      return this.images[0];
     }
 
     return "";

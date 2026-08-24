@@ -13,21 +13,20 @@ const EMAILJS_TEMPLATE_ID =
 const EMAILJS_PUBLIC_KEY =
   import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
-// COMPONENTE
+// COMPONENT
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
-    nombre: "",
+    name: "",
     email: "",
-    telefono: "",
-    mensaje: "",
+    phone: "",
+    message: "",
   });
 
-  const [isLoading, setIsLoading] = useState(false);
-
+  const [isLoading, setIsLoading] =
+    useState(false);
 
   // SWEET ALERT
-
 
   const swalBase = {
     background: "#FCFBF8",
@@ -35,36 +34,30 @@ const ContactForm = () => {
     confirmButtonColor: "#405A47",
   };
 
+  // FORM CHANGES
 
-  // CAMBIOS DEL FORMULARIO
+  const handleChange = (event) => {
+    const { name, value } = event.target;
 
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
+    setFormData((previous) => ({
+      ...previous,
       [name]: value,
     }));
   };
 
+  // FORM SUBMIT
 
-  // ENVÍO DEL FORMULARIO
-
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
     if (isLoading) return;
 
-    const nombre = formData.nombre.trim();
+    const name = formData.name.trim();
     const email = formData.email.trim();
-    const telefono = formData.telefono.trim();
-    const mensaje = formData.mensaje.trim();
+    const phone = formData.phone.trim();
+    const message = formData.message.trim();
 
-  
-    // VALIDAR CONFIGURACIÓN
-  
+    // VALIDATE CONFIGURATION
 
     if (
       !EMAILJS_SERVICE_ID ||
@@ -82,15 +75,13 @@ const ContactForm = () => {
       return;
     }
 
-  
-    // VALIDAR CAMPOS
-  
+    // VALIDATE FIELDS
 
     if (
-      !nombre ||
+      !name ||
       !email ||
-      !telefono ||
-      !mensaje
+      !phone ||
+      !message
     ) {
       await Swal.fire({
         ...swalBase,
@@ -103,9 +94,7 @@ const ContactForm = () => {
       return;
     }
 
-  
-    // VALIDAR EMAIL
-  
+    // VALIDATE EMAIL
 
     const emailRegex =
       /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -122,15 +111,13 @@ const ContactForm = () => {
       return;
     }
 
-  
-    // VALIDAR LONGITUDES
-  
+    // VALIDATE LENGTHS
 
     if (
-      nombre.length > 100 ||
+      name.length > 100 ||
       email.length > 150 ||
-      telefono.length > 30 ||
-      mensaje.length > 2000
+      phone.length > 30 ||
+      message.length > 2000
     ) {
       await Swal.fire({
         ...swalBase,
@@ -146,24 +133,20 @@ const ContactForm = () => {
     setIsLoading(true);
 
     try {
-    
-      // VARIABLES DEL TEMPLATE
-    
+      // TEMPLATE VARIABLES
 
       const templateParams = {
-        nombre,
+        nombre: name,
         email,
-        telefono,
-        mensaje,
+        telefono: phone,
+        mensaje: message,
 
-        from_name: nombre,
+        from_name: name,
         from_email: email,
         reply_to: email,
       };
 
-    
-      // ENVIAR CON EMAILJS
-    
+      // SEND WITH EMAILJS
 
       await emailjs.send(
         EMAILJS_SERVICE_ID,
@@ -174,9 +157,7 @@ const ContactForm = () => {
         }
       );
 
-    
-      // ÉXITO
-    
+      // SUCCESS
 
       await Swal.fire({
         ...swalBase,
@@ -188,12 +169,13 @@ const ContactForm = () => {
         showConfirmButton: false,
       });
 
-      // Limpiar formulario
+      // RESET FORM
+
       setFormData({
-        nombre: "",
+        name: "",
         email: "",
-        telefono: "",
-        mensaje: "",
+        phone: "",
+        message: "",
       });
     } catch (error) {
       console.error(
@@ -216,9 +198,7 @@ const ContactForm = () => {
     }
   };
 
-
-  // ESTILOS
-
+  // STYLES
 
   const inputBase =
     "w-full rounded-xl bg-[#F8F7F3] border border-[#D7DDD4] text-[#243128] outline-none " +
@@ -228,24 +208,21 @@ const ContactForm = () => {
   const labelBase =
     "block text-sm font-medium text-[#526054] mb-2";
 
-
   // RENDER
-
 
   return (
     <section
       id="contacto"
       className="relative overflow-hidden rounded-4xl border border-[#D8DDD4] bg-[#FCFBF8] px-5 py-10 shadow-[0_22px_65px_rgba(36,49,40,0.06)] sm:px-8 lg:px-10 lg:py-12"
     >
-      {/* Decoración */}
+      {/* DECORATION */}
 
       <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#AAB7A6]/15 blur-[90px]" />
 
       <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-[#C6AD98]/15 blur-[90px]" />
 
       <div className="relative z-10 mx-auto w-full max-w-4xl">
-
-        {/* ENCABEZADO */}
+        {/* HEADER */}
 
         <div className="mb-9 max-w-2xl">
           <p className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-[#788873]">
@@ -263,30 +240,30 @@ const ContactForm = () => {
           </p>
         </div>
 
-        {/* FORMULARIO */}
+        {/* FORM */}
 
         <form
           onSubmit={handleSubmit}
           className="grid grid-cols-1 gap-5 md:grid-cols-2"
         >
-          {/* NOMBRE */}
+          {/* NAME */}
 
           <div>
             <label
-              htmlFor="nombre"
+              htmlFor="name"
               className={labelBase}
             >
               Nombre y apellido
             </label>
 
             <input
-              id="nombre"
+              id="name"
               type="text"
-              name="nombre"
+              name="name"
               placeholder="Ej. Juan Pérez"
               className={inputBase}
               onChange={handleChange}
-              value={formData.nombre}
+              value={formData.name}
               disabled={isLoading}
               autoComplete="name"
               required
@@ -319,24 +296,24 @@ const ContactForm = () => {
             />
           </div>
 
-          {/* TELÉFONO */}
+          {/* PHONE */}
 
           <div className="md:col-span-2">
             <label
-              htmlFor="telefono"
+              htmlFor="phone"
               className={labelBase}
             >
               Teléfono
             </label>
 
             <input
-              id="telefono"
+              id="phone"
               type="tel"
-              name="telefono"
+              name="phone"
               placeholder="WhatsApp o teléfono con código de área"
               className={inputBase}
               onChange={handleChange}
-              value={formData.telefono}
+              value={formData.phone}
               disabled={isLoading}
               autoComplete="tel"
               required
@@ -344,23 +321,23 @@ const ContactForm = () => {
             />
           </div>
 
-          {/* MENSAJE */}
+          {/* MESSAGE */}
 
           <div className="md:col-span-2">
             <label
-              htmlFor="mensaje"
+              htmlFor="message"
               className={labelBase}
             >
               Consulta
             </label>
 
             <textarea
-              id="mensaje"
-              name="mensaje"
+              id="message"
+              name="message"
               placeholder="Contanos qué productos, cantidades o servicio necesitás..."
               className={`${inputBase} min-h-36 resize-y`}
               onChange={handleChange}
-              value={formData.mensaje}
+              value={formData.message}
               disabled={isLoading}
               required
               maxLength={2000}
@@ -370,7 +347,6 @@ const ContactForm = () => {
           {/* FOOTER */}
 
           <div className="md:col-span-2 flex flex-col gap-4 border-t border-[#E0E4DD] pt-5 sm:flex-row sm:items-center sm:justify-between">
-
             <p className="max-w-md text-xs leading-relaxed text-[#8A938B]">
               Usaremos estos datos únicamente para
               responder tu consulta.

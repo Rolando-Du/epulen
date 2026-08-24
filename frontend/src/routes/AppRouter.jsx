@@ -1,4 +1,5 @@
 import React from "react";
+
 import {
   BrowserRouter as Router,
   Routes,
@@ -11,14 +12,12 @@ import Footer from "../layouts/Footer";
 import WhatsAppButton from "../components/WhatsAppButton";
 
 import Home from "../pages/Home";
-import Productos from "../pages/Productos";
+import Products from "../pages/Products";
 import Dashboard from "../pages/Dashboard";
 import Login from "../pages/Login";
 import ProductDetail from "../pages/ProductDetail";
 
-// ==============================
-// RUTA PRIVADA
-// ==============================
+// PRIVATE ROUTE
 
 const ProtectedRoute = ({ children }) => {
   const isAuthenticated =
@@ -27,28 +26,30 @@ const ProtectedRoute = ({ children }) => {
   return isAuthenticated ? (
     children
   ) : (
-    <Navigate to="/login" replace />
+    <Navigate
+      to="/login"
+      replace
+    />
   );
 };
 
-// ==============================
-// RUTA PÚBLICA DE LOGIN
-// ==============================
+// PUBLIC LOGIN ROUTE
 
 const PublicRoute = ({ children }) => {
   const isAuthenticated =
     sessionStorage.getItem("admin_auth") === "true";
 
   return isAuthenticated ? (
-    <Navigate to="/admin" replace />
+    <Navigate
+      to="/admin"
+      replace
+    />
   ) : (
     children
   );
 };
 
-// ==============================
-// ROUTER
-// ==============================
+// APP ROUTER
 
 const AppRouter = () => {
   return (
@@ -60,9 +61,7 @@ const AppRouter = () => {
 
         <div className="grow">
           <Routes>
-            {/* ============================== */}
-            {/* RUTAS PÚBLICAS */}
-            {/* ============================== */}
+            {/* PUBLIC ROUTES */}
 
             <Route
               path="/"
@@ -70,8 +69,25 @@ const AppRouter = () => {
             />
 
             <Route
+              path="/products"
+              element={<Products />}
+            />
+
+            <Route
+              path="/product/:id"
+              element={<ProductDetail />}
+            />
+
+            {/* LEGACY ROUTES */}
+
+            <Route
               path="/productos"
-              element={<Productos />}
+              element={
+                <Navigate
+                  to="/products"
+                  replace
+                />
+              }
             />
 
             <Route
@@ -79,9 +95,7 @@ const AppRouter = () => {
               element={<ProductDetail />}
             />
 
-            {/* ============================== */}
             {/* LOGIN */}
-            {/* ============================== */}
 
             <Route
               path="/login"
@@ -92,9 +106,7 @@ const AppRouter = () => {
               }
             />
 
-            {/* ============================== */}
             {/* ADMIN */}
-            {/* ============================== */}
 
             <Route
               path="/admin"
@@ -105,9 +117,7 @@ const AppRouter = () => {
               }
             />
 
-            {/* ============================== */}
             {/* 404 */}
-            {/* ============================== */}
 
             <Route
               path="*"

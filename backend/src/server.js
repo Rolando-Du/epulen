@@ -5,25 +5,14 @@ import cors from "cors";
 import helmet from "helmet";
 import jwt from "jsonwebtoken";
 
-import conectarDB from "./config/db.js";
-
-// Rutas
+import connectDB from "./config/db.js";
 import productRoutes from "./routes/productRoutes.js";
 
-// BASE DE DATOS
-
-conectarDB();
-
-// APP
+connectDB();
 
 const app = express();
 
-/*
-Render trabaja detrás de un proxy.
-*/
 app.set("trust proxy", 1);
-
-// SEGURIDAD
 
 app.use(
   helmet({
@@ -32,8 +21,6 @@ app.use(
     },
   })
 );
-
-// CORS
 
 const allowedOrigins = [
   "http://localhost:5173",
@@ -45,14 +32,6 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      /*
-      Permitir requests sin Origin:
-      Postman,
-      Thunder Client,
-      Render health checks,
-      etc.
-      */
-
       if (!origin) {
         return callback(null, true);
       }
@@ -62,12 +41,12 @@ app.use(
       }
 
       console.warn(
-        `⚠️ CORS bloqueó el origen: ${origin}`
+        `CORS blocked origin: ${origin}`
       );
 
       return callback(
         new Error(
-          "Origen no permitido por CORS"
+          "Origin not allowed by CORS"
         )
       );
     },
@@ -89,8 +68,6 @@ app.use(
   })
 );
 
-// BODY PARSERS
-
 app.use(
   express.json({
     limit: "100kb",
@@ -104,69 +81,65 @@ app.use(
   })
 );
 
-// RUTAS API
-
 app.use(
-  "/api/productos",
+  "/api/products",
   productRoutes
 );
 
-// LOGIN ADMIN
+app.post(
+  "/api/login",
+  (req, res) => {
+    const { password } = req.body;
 
-app.post("/api/login", (req, res) => {
-  const { password } = req.body;
+    if (!password) {
+      return res.status(400).json({
+        success: false,
+        message: "Contraseña requerida",
+      });
+    }
 
-  // Validar que llegue contraseña
-  if (!password) {
-    return res.status(400).json({
-      success: false,
-      message: "Contraseña requerida",
-    });
-  }
+    if (
+      !process.env.JWT_SECRET ||
+      !process.env.ADMIN_PASSWORD
+    ) {
+      console.error(
+        "JWT_SECRET o ADMIN_PASSWORD no están configurados"
+      );
 
-  // Validar configuración JWT
-  if (!process.env.JWT_SECRET) {
-    console.error(
-      "❌ JWT_SECRET no está configurado"
+      return res.status(500).json({
+        success: false,
+        message:
+          "Error de configuración del servidor",
+      });
+    }
+
+    if (
+      password !==
+      process.env.ADMIN_PASSWORD
+    ) {
+      return res.status(401).json({
+        success: false,
+        message: "Contraseña incorrecta",
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        role: "admin",
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "2h",
+      }
     );
 
-    return res.status(500).json({
-      success: false,
-      message:
-        "Error de configuración del servidor",
+    return res.status(200).json({
+      success: true,
+      message: "Autenticación exitosa",
+      token,
     });
   }
-
-  // Validar contraseña administrador
-  if (
-    password !==
-    process.env.ADMIN_PASSWORD
-  ) {
-    return res.status(401).json({
-      success: false,
-      message: "Contraseña incorrecta",
-    });
-  }
-
-  // Generar token JWT
-  const token = jwt.sign(
-    {
-      role: "admin",
-    },
-    process.env.JWT_SECRET,
-    {
-      expiresIn: "2h",
-    }
-  );
-
-  return res.status(200).json({
-    success: true,
-    message: "Autenticación exitosa",
-    token,
-  });
-});
-
-// HEALTH CHECK
+);
 
 app.get("/health", (req, res) => {
   return res.status(200).json({
@@ -178,8 +151,6 @@ app.get("/health", (req, res) => {
   });
 });
 
-// 404 API
-
 app.use("/api", (req, res) => {
   return res.status(404).json({
     success: false,
@@ -187,54 +158,48 @@ app.use("/api", (req, res) => {
   });
 });
 
-// ERROR HANDLER
+app.use(
+  (error, req, res, _next) => {
+    console.error(
+      "Server error:",
+      error
+    );
 
-app.use((err, req, res, next) => {
-  console.error(
-    "❌ Error del servidor:",
-    err
-  );
+    if (
+      error.message ===
+      "Origin not allowed by CORS"
+    ) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "El origen de la solicitud no está permitido.",
+      });
+    }
 
-  if (
-    err.message ===
-    "Origen no permitido por CORS"
-  ) {
-    return res.status(403).json({
+    return res.status(500).json({
       success: false,
       message:
-        "El origen de la solicitud no está permitido.",
+        "Error interno del servidor",
     });
   }
-
-  return res.status(500).json({
-    success: false,
-    message:
-      "Error interno del servidor",
-  });
-});
-
-// SERVER
+);
 
 const PORT =
   process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log("");
-
   console.log(
     "EPULÉN SEGURIDAD INDUSTRIAL"
   );
-
   console.log(
-    `Servidor operativo en puerto ${PORT}`
+    `Server running on port ${PORT}`
   );
-
   console.log(
-    `Entorno: ${
+    `Environment: ${
       process.env.NODE_ENV ||
       "development"
     }`
   );
-
   console.log("");
 });

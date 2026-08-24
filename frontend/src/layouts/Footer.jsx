@@ -1,6 +1,12 @@
 import React from "react";
+
 import LogoEpulen from "../assets/epulen.png";
-import { MapPin, Navigation, Phone } from "lucide-react";
+
+import {
+  MapPin,
+  Navigation,
+  Phone,
+} from "lucide-react";
 
 const Footer = () => {
   const year = new Date().getFullYear();
@@ -9,7 +15,8 @@ const Footer = () => {
     <footer className="border-t border-[#35463A] bg-[#243128] text-[#D9E0D8]">
       <div className="mx-auto w-full max-w-7xl px-5 py-14 sm:px-8 lg:px-12 lg:py-16">
         <div className="grid grid-cols-1 gap-12 md:grid-cols-3 md:gap-10">
-          {/* MARCA */}
+          {/* BRAND */}
+
           <div>
             <div className="inline-flex rounded-2xl bg-[#F7F4ED] px-4 py-3">
               <img
@@ -27,21 +34,34 @@ const Footer = () => {
             </p>
           </div>
 
-          {/* ÁREAS */}
+          {/* WORK AREAS */}
+
           <div>
             <p className="mb-5 text-xs font-medium uppercase tracking-[0.18em] text-[#9FB09F]">
               Áreas de trabajo
             </p>
 
             <ul className="space-y-3 text-sm text-[#CBD3CA]">
-              <li>Elementos de Protección Personal (EPP)</li>
-              <li>Ingeniería y Gestión Ambiental</li>
-              <li>Capacitaciones Técnicas</li>
-              <li>Consultoría en Higiene y Seguridad</li>
+              <li>
+                Elementos de Protección Personal (EPP)
+              </li>
+
+              <li>
+                Ingeniería y Gestión Ambiental
+              </li>
+
+              <li>
+                Capacitaciones Técnicas
+              </li>
+
+              <li>
+                Consultoría en Higiene y Seguridad
+              </li>
             </ul>
           </div>
 
-          {/* CONTACTO */}
+          {/* CONTACT */}
+
           <div id="contacto">
             <p className="mb-5 text-xs font-medium uppercase tracking-[0.18em] text-[#9FB09F]">
               Contacto
@@ -65,7 +85,10 @@ const Footer = () => {
                 className="flex items-center gap-3 text-[#CBD3CA] transition-colors hover:text-white"
               >
                 <Navigation className="h-4 w-4 shrink-0 text-[#AAB7A6]" />
-                <span>Ver ubicación</span>
+
+                <span>
+                  Ver ubicación
+                </span>
               </a>
 
               <a
@@ -73,12 +96,16 @@ const Footer = () => {
                 className="flex items-center gap-3 text-[#CBD3CA] transition-colors hover:text-white"
               >
                 <Phone className="h-4 w-4 shrink-0 text-[#AAB7A6]" />
-                <span>+54 294 468-2812</span>
+
+                <span>
+                  +54 294 468-2812
+                </span>
               </a>
             </div>
 
             <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-[#526655] bg-[#2C3B31] px-3.5 py-2">
               <span className="h-2 w-2 rounded-full bg-[#AAB7A6]" />
+
               <span className="text-xs font-medium text-[#C8D1C7]">
                 Atención personalizada
               </span>
@@ -87,7 +114,8 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* BARRA INFERIOR */}
+      {/* BOTTOM BAR */}
+
       <div className="border-t border-[#35463A]">
         <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-2 px-5 py-6 text-center sm:flex-row sm:px-8 lg:px-12">
           <p className="text-[11px] text-[#8FA08F]">
