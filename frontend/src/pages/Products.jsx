@@ -1,33 +1,19 @@
-import React, {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import ProductCard from "../components/ProductCard";
 
 const Products = () => {
-  const [products, setProducts] =
-    useState([]);
+  const [products, setProducts] = useState([]);
 
-  const [search, setSearch] =
-    useState("");
+  const [search, setSearch] = useState("");
 
-  const [
-    activeCategory,
-    setActiveCategory,
-  ] = useState("Todos");
+  const [activeCategory, setActiveCategory] = useState("Todos");
 
-  const [
-    activeSubcategory,
-    setActiveSubcategory,
-  ] = useState("Todas");
+  const [activeSubcategory, setActiveSubcategory] = useState("Todas");
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const API_URL =
-    import.meta.env.VITE_API_URL || "";
+  const API_URL = import.meta.env.VITE_API_URL || "";
 
   // CATEGORIES
 
@@ -43,22 +29,21 @@ const Products = () => {
       "Extintores",
       "Montaña",
     ],
-    []
+    [],
   );
 
   // PROTECTION SUBCATEGORIES
 
-  const protectionSubcategories =
-    useMemo(
-      () => [
-        "Todas",
-        "Protección visual",
-        "Protección craneal",
-        "Protección auditiva",
-        "Protección respiratoria",
-      ],
-      []
-    );
+  const protectionSubcategories = useMemo(
+    () => [
+      "Todas",
+      "Protección visual",
+      "Protección craneal",
+      "Protección auditiva",
+      "Protección respiratoria",
+    ],
+    [],
+  );
 
   // FETCH PRODUCTS
 
@@ -66,56 +51,34 @@ const Products = () => {
     const fetchProducts = async () => {
       try {
         if (!API_URL) {
-          throw new Error(
-            "Falta VITE_API_URL"
-          );
+          throw new Error("Falta VITE_API_URL");
         }
 
-        const response = await fetch(
-          `${API_URL}/api/productos`
-        );
+        const response = await fetch(`${API_URL}/api/products`);
 
         if (!response.ok) {
-          throw new Error(
-            "Error al obtener productos"
-          );
+          throw new Error("Error al obtener productos");
         }
 
-        const result =
-          await response.json();
+        const result = await response.json();
 
-        const arr = Array.isArray(
-          result
-        )
-          ? result
-          : [];
+        const arr = Array.isArray(result) ? result : [];
 
-        const sortedProducts = [...arr].sort(
-          (a, b) => {
-            const da = new Date(
-              a.creadoEn ||
-                a.createdAt ||
-                a.updatedAt ||
-                0
-            ).getTime();
+        const sortedProducts = [...arr].sort((a, b) => {
+          const da = new Date(
+            a.creadoEn || a.createdAt || a.updatedAt || 0,
+          ).getTime();
 
-            const db = new Date(
-              b.creadoEn ||
-                b.createdAt ||
-                b.updatedAt ||
-                0
-            ).getTime();
+          const db = new Date(
+            b.creadoEn || b.createdAt || b.updatedAt || 0,
+          ).getTime();
 
-            return db - da;
-          }
-        );
+          return db - da;
+        });
 
         setProducts(sortedProducts);
       } catch (error) {
-        console.error(
-          "Error cargando el catálogo:",
-          error
-        );
+        console.error("Error cargando el catálogo:", error);
 
         setProducts([]);
       } finally {
@@ -128,106 +91,69 @@ const Products = () => {
 
   // CHANGE CATEGORY
 
-  const changeCategory = (
-    category
-  ) => {
+  const changeCategory = (category) => {
     setActiveCategory(category);
     setActiveSubcategory("Todas");
   };
 
   // FILTER PRODUCTS
 
-  const filteredProducts =
-    useMemo(() => {
-      let filtered = [...products];
+  const filteredProducts = useMemo(() => {
+    let filtered = [...products];
 
-      // CATEGORY FILTER
+    // CATEGORY FILTER
 
-      if (
-        activeCategory !== "Todos"
-      ) {
-        const searchedCategory =
-          activeCategory.toLowerCase();
+    if (activeCategory !== "Todos") {
+      const searchedCategory = activeCategory.toLowerCase();
 
-        filtered = filtered.filter(
-          (product) =>
-            (
-              product.categoria || ""
-            ).toLowerCase() ===
-            searchedCategory
+      filtered = filtered.filter(
+        (product) =>
+          (product.category || "").toLowerCase() === searchedCategory,
+      );
+    }
+
+    // SUBCATEGORY FILTER
+
+    if (activeCategory === "Protección" && activeSubcategory !== "Todas") {
+      const searchedSubcategory = activeSubcategory.toLowerCase();
+
+      filtered = filtered.filter(
+        (product) =>
+          (product.subcategory || "").toLowerCase() === searchedSubcategory,
+      );
+    }
+
+    // SEARCH
+
+    const q = search.trim().toLowerCase();
+
+    if (q) {
+      filtered = filtered.filter((product) => {
+        const name = (product.name || "").toLowerCase();
+
+        const description = (product.description || "").toLowerCase();
+
+        const category = (product.category || "").toLowerCase();
+
+        const subcategory = (product.subcategory || "").toLowerCase();
+
+        return (
+          name.includes(q) ||
+          description.includes(q) ||
+          category.includes(q) ||
+          subcategory.includes(q)
         );
-      }
+      });
+    }
 
-      // SUBCATEGORY FILTER
+    return filtered;
+  }, [products, activeCategory, activeSubcategory, search]);
 
-      if (
-        activeCategory ===
-          "Protección" &&
-        activeSubcategory !== "Todas"
-      ) {
-        const searchedSubcategory =
-          activeSubcategory.toLowerCase();
-
-        filtered = filtered.filter(
-          (product) =>
-            (
-              product.subcategoria || ""
-            ).toLowerCase() ===
-            searchedSubcategory
-        );
-      }
-
-      // SEARCH
-
-      const q = search
-        .trim()
-        .toLowerCase();
-
-      if (q) {
-        filtered = filtered.filter(
-          (product) => {
-            const name = (
-              product.nombre || ""
-            ).toLowerCase();
-
-            const description = (
-              product.descripcion || ""
-            ).toLowerCase();
-
-            const category = (
-              product.categoria || ""
-            ).toLowerCase();
-
-            const subcategory = (
-              product.subcategoria || ""
-            ).toLowerCase();
-
-            return (
-              name.includes(q) ||
-              description.includes(q) ||
-              category.includes(q) ||
-              subcategory.includes(q)
-            );
-          }
-        );
-      }
-
-      return filtered;
-    }, [
-      products,
-      activeCategory,
-      activeSubcategory,
-      search,
-    ]);
-
-  const container =
-    "mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-12";
+  const container = "mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-12";
 
   return (
     <div className="min-h-screen bg-[#F4F2EC] text-[#243128]">
-      <div
-        className={`${container} pt-24 sm:pt-28 pb-20`}
-      >
+      <div className={`${container} pt-24 sm:pt-28 pb-20`}>
         {/* HEADER */}
 
         <header className="max-w-3xl mb-12">
@@ -240,10 +166,8 @@ const Products = () => {
           </h1>
 
           <p className="mt-5 text-[#687168] leading-relaxed max-w-2xl">
-            Encontrá indumentaria,
-            calzado y elementos de
-            seguridad para distintas
-            necesidades de trabajo.
+            Encontrá indumentaria, calzado y elementos de seguridad para
+            distintas necesidades de trabajo.
           </p>
         </header>
 
@@ -273,11 +197,7 @@ const Products = () => {
                   type="text"
                   placeholder="Buscar productos..."
                   value={search}
-                  onChange={(e) =>
-                    setSearch(
-                      e.target.value
-                    )
-                  }
+                  onChange={(e) => setSearch(e.target.value)}
                   className="
                     w-full
                     bg-[#FCFBF8]
@@ -302,44 +222,35 @@ const Products = () => {
               {/* CATEGORIES */}
 
               <div className="flex gap-2 overflow-x-auto pb-2 xl:pb-0 no-scrollbar">
-                {categories.map(
-                  (category) => {
-                    const isActive =
-                      activeCategory ===
-                      category;
+                {categories.map((category) => {
+                  const isActive = activeCategory === category;
 
-                    return (
-                      <button
-                        key={category}
-                        onClick={() =>
-                          changeCategory(
-                            category
-                          )
-                        }
-                        className={[
-                          "px-4 py-2.5",
-                          "rounded-full",
-                          "text-xs font-medium",
-                          "transition-all duration-200",
-                          "whitespace-nowrap",
-                          "border",
-                          isActive
-                            ? "bg-[#405A47] border-[#405A47] text-white"
-                            : "bg-[#FCFBF8] border-[#D8DDD4] text-[#677068] hover:border-[#9FAC9B] hover:text-[#243128]",
-                        ].join(" ")}
-                      >
-                        {category}
-                      </button>
-                    );
-                  }
-                )}
+                  return (
+                    <button
+                      key={category}
+                      onClick={() => changeCategory(category)}
+                      className={[
+                        "px-4 py-2.5",
+                        "rounded-full",
+                        "text-xs font-medium",
+                        "transition-all duration-200",
+                        "whitespace-nowrap",
+                        "border",
+                        isActive
+                          ? "bg-[#405A47] border-[#405A47] text-white"
+                          : "bg-[#FCFBF8] border-[#D8DDD4] text-[#677068] hover:border-[#9FAC9B] hover:text-[#243128]",
+                      ].join(" ")}
+                    >
+                      {category}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* PROTECTION SUBCATEGORIES */}
 
-            {activeCategory ===
-              "Protección" && (
+            {activeCategory === "Protección" && (
               <div className="pt-4 border-t border-[#D8DDD4]">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                   <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#788078] whitespace-nowrap">
@@ -347,45 +258,32 @@ const Products = () => {
                   </span>
 
                   <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-                    {protectionSubcategories.map(
-                      (subcategory) => {
-                        const isActive =
-                          activeSubcategory ===
-                          subcategory;
+                    {protectionSubcategories.map((subcategory) => {
+                      const isActive = activeSubcategory === subcategory;
 
-                        return (
-                          <button
-                            key={
-                              subcategory
-                            }
-                            onClick={() =>
-                              setActiveSubcategory(
-                                subcategory
-                              )
-                            }
-                            className={[
-                              "px-4 py-2",
-                              "rounded-xl",
-                              "text-xs",
-                              "font-medium",
-                              "whitespace-nowrap",
-                              "border",
-                              "transition-all duration-200",
-                              isActive
-                                ? "bg-[#9A6750] border-[#9A6750] text-white"
-                                : "bg-[#FAF8F4] border-[#DDD5CE] text-[#755E53] hover:bg-white hover:border-[#BFA99D]",
-                            ].join(
-                              " "
-                            )}
-                          >
-                            {subcategory ===
-                            "Todas"
-                              ? "Toda protección"
-                              : subcategory}
-                          </button>
-                        );
-                      }
-                    )}
+                      return (
+                        <button
+                          key={subcategory}
+                          onClick={() => setActiveSubcategory(subcategory)}
+                          className={[
+                            "px-4 py-2",
+                            "rounded-xl",
+                            "text-xs",
+                            "font-medium",
+                            "whitespace-nowrap",
+                            "border",
+                            "transition-all duration-200",
+                            isActive
+                              ? "bg-[#9A6750] border-[#9A6750] text-white"
+                              : "bg-[#FAF8F4] border-[#DDD5CE] text-[#755E53] hover:bg-white hover:border-[#BFA99D]",
+                          ].join(" ")}
+                        >
+                          {subcategory === "Todas"
+                            ? "Toda protección"
+                            : subcategory}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -411,24 +309,17 @@ const Products = () => {
               <div>
                 <p className="text-[#788078] text-sm">
                   <span className="font-semibold text-[#405A47]">
-                    {
-                      filteredProducts.length
-                    }
+                    {filteredProducts.length}
                   </span>{" "}
-                  {filteredProducts.length ===
-                  1
+                  {filteredProducts.length === 1
                     ? "producto encontrado"
                     : "productos encontrados"}
                 </p>
 
-                {activeCategory ===
-                  "Protección" &&
-                  activeSubcategory !==
-                    "Todas" && (
+                {activeCategory === "Protección" &&
+                  activeSubcategory !== "Todas" && (
                     <p className="text-xs text-[#9A6750] mt-1">
-                      {
-                        activeSubcategory
-                      }
+                      {activeSubcategory}
                     </p>
                   )}
               </div>
@@ -440,38 +331,25 @@ const Products = () => {
               )}
             </div>
 
-            {filteredProducts.length >
-            0 ? (
+            {filteredProducts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-7">
-                {filteredProducts.map(
-                  (product) => (
-                    <ProductCard
-                      key={product._id}
-                      id={product._id}
-                      nombre={
-                        product.nombre
-                      }
-                      categoria={
-                        product.categoria
-                      }
-                      subcategoria={
-                        product.subcategoria
-                      }
-                      precio={
-                        product.precio
-                      }
-                      imagen={
-                        product.imagenUrl ||
-                        (product.imagenes &&
-                          product
-                            .imagenes[0])
-                      }
-                      descripcion={
-                        product.descripcion
-                      }
-                    />
-                  )
-                )}
+                {filteredProducts.map((product) => (
+                  <ProductCard
+                    key={product.id || product._id}
+                    id={product.id || product._id}
+                    name={product.name}
+                    category={product.category}
+                    subcategory={product.subcategory}
+                    price={product.price}
+                    image={
+                      product.imageUrl ||
+                      (Array.isArray(product.images)
+                        ? product.images[0]
+                        : "")
+                    }
+                    description={product.description}
+                  />
+                ))}
               </div>
             ) : (
               <div className="text-center py-20 bg-[#FAF9F5] border border-dashed border-[#CCD3C8] rounded-3xl">
@@ -492,25 +370,18 @@ const Products = () => {
                 </div>
 
                 <h3 className="font-semibold text-[#344039]">
-                  No encontramos
-                  productos
+                  No encontramos productos
                 </h3>
 
                 <p className="text-[#7B847C] text-sm mt-2">
-                  Probá con otra búsqueda
-                  o seleccioná otra
-                  categoría.
+                  Probá con otra búsqueda o seleccioná otra categoría.
                 </p>
 
                 <button
                   onClick={() => {
                     setSearch("");
-                    setActiveCategory(
-                      "Todos"
-                    );
-                    setActiveSubcategory(
-                      "Todas"
-                    );
+                    setActiveCategory("Todos");
+                    setActiveSubcategory("Todas");
                   }}
                   className="mt-5 text-sm font-medium text-[#405A47] hover:text-[#243128]"
                 >
