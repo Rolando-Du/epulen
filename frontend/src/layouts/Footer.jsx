@@ -2,11 +2,7 @@ import React from "react";
 
 import LogoEpulen from "../assets/epulen.png";
 
-import {
-  MapPin,
-  Navigation,
-  Phone,
-} from "lucide-react";
+import { MapPin, Navigation, Phone } from "lucide-react";
 
 const Footer = () => {
   const year = new Date().getFullYear();
@@ -42,21 +38,13 @@ const Footer = () => {
             </p>
 
             <ul className="space-y-3 text-sm text-[#CBD3CA]">
-              <li>
-                Elementos de Protección Personal (EPP)
-              </li>
+              <li>Elementos de Protección Personal (EPP)</li>
 
-              <li>
-                Ingeniería y Gestión Ambiental
-              </li>
+              <li>Ingeniería y Gestión Ambiental</li>
 
-              <li>
-                Capacitaciones Técnicas
-              </li>
+              <li>Capacitaciones Técnicas</li>
 
-              <li>
-                Consultoría en Higiene y Seguridad
-              </li>
+              <li>Consultoría en Higiene y Seguridad</li>
             </ul>
           </div>
 
@@ -68,28 +56,34 @@ const Footer = () => {
             </p>
 
             <div className="space-y-4 text-sm">
+              {/* DIRECCIÓN */}
+
               <div className="flex items-start gap-3">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#AAB7A6]" />
 
                 <p className="leading-relaxed text-[#CBD3CA]">
+                  Félix San Martín 515
+                  <br />
                   Q8371 Junín de los Andes
                   <br />
                   Neuquén, Argentina
                 </p>
               </div>
 
+              {/* GOOGLE MAPS */}
+
               <a
-                href="https://www.google.com/maps/search/?api=1&query=Jun%C3%ADn+de+los+Andes+Neuqu%C3%A9n"
+                href="https://www.google.com/maps/search/?api=1&query=F%C3%A9lix+San+Mart%C3%ADn+515%2C+Q8371+Jun%C3%ADn+de+los+Andes%2C+Neuqu%C3%A9n%2C+Argentina"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 text-[#CBD3CA] transition-colors hover:text-white"
               >
                 <Navigation className="h-4 w-4 shrink-0 text-[#AAB7A6]" />
 
-                <span>
-                  Ver ubicación
-                </span>
+                <span>Ver ubicación</span>
               </a>
+
+              {/* TELÉFONO */}
 
               <a
                 href="tel:+542944682812"
@@ -97,9 +91,7 @@ const Footer = () => {
               >
                 <Phone className="h-4 w-4 shrink-0 text-[#AAB7A6]" />
 
-                <span>
-                  +54 294 468-2812
-                </span>
+                <span>+54 294 468-2812</span>
               </a>
             </div>
 
