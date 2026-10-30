@@ -1,53 +1,85 @@
 import React, { useEffect, useState } from "react";
+
 import { useNavigate } from "react-router-dom";
+
 import Swal from "sweetalert2";
+
 import jsPDF from "jspdf";
+
 import autoTable from "jspdf-autotable";
 
 const CATEGORIES = [
   "Indumentaria",
+
   "Calzado",
+
   "Guantes",
+
   "Alturas",
+
   "Protección",
+
   "Señalización",
+
   "Extintores",
+
   "Montaña",
 ];
 
 const PROTECTION_SUBCATEGORIES = [
   "Protección visual",
+
   "Protección craneal",
+
   "Protección auditiva",
+
   "Protección respiratoria",
 ];
 
 const initialProductState = {
   name: "",
+
   description: "",
+
   category: "",
+
   subcategory: "",
+
   price: "",
+
   previousImageUrl: null,
+
   featured: false,
 };
 
 const Dashboard = () => {
   const API_URL = import.meta.env.VITE_API_URL || "";
+
   const navigate = useNavigate();
 
   const [formProduct, setFormProduct] = useState(initialProductState);
+
   const [imageFiles, setImageFiles] = useState([]);
+
+  const [imagePreviews, setImagePreviews] = useState([]);
+
   const [products, setProducts] = useState([]);
+
   const [search, setSearch] = useState("");
+
   const [categoryFilter, setCategoryFilter] = useState("Todas");
+
   const [isEditing, setIsEditing] = useState(false);
+
   const [editingId, setEditingId] = useState(null);
 
   const swalStyle = {
     background: "#FCFBF8",
+
     color: "#243128",
+
     confirmButtonColor: "#405A47",
+
     cancelButtonColor: "#8A948B",
   };
 
@@ -56,39 +88,55 @@ const Dashboard = () => {
 
   const mapApiProduct = (item) => ({
     id: item.id || item._id,
+
     name: item.name || "",
+
     description: item.description || "",
+
     category: item.category || "",
+
     subcategory: item.subcategory || "",
+
     price: item.price ?? "",
+
     featured: Boolean(item.featured),
+
     imageUrl:
       item.imageUrl ||
       (Array.isArray(item.images) ? item.images[0] : null) ||
       null,
+
     images: Array.isArray(item.images) ? item.images : [],
   });
 
-  // ADMIN SESSION
-
   const clearSession = () => {
     sessionStorage.removeItem("admin_auth");
+
     sessionStorage.removeItem("admin_token");
+
     localStorage.removeItem("admin_auth");
+
     localStorage.removeItem("admin_token");
   };
 
   const handleExpiredSession = async () => {
     Swal.close();
+
     clearSession();
 
     await Swal.fire({
       ...swalStyle,
+
       icon: "warning",
+
       title: "Sesión finalizada",
+
       text: "Tu sesión expiró o ya no es válida. Iniciá sesión nuevamente.",
+
       confirmButtonText: "Ir al login",
+
       allowOutsideClick: false,
+
       allowEscapeKey: false,
     });
 
@@ -98,23 +146,30 @@ const Dashboard = () => {
   const logout = async () => {
     const result = await Swal.fire({
       ...swalStyle,
+
       icon: "question",
+
       title: "¿Cerrar sesión?",
+
       text: "Vas a salir del panel de administración.",
+
       showCancelButton: true,
+
       confirmButtonText: "Sí, salir",
+
       cancelButtonText: "Cancelar",
+
       confirmButtonColor: "#9A5D51",
+
       cancelButtonColor: "#8A948B",
     });
 
     if (!result.isConfirmed) return;
 
     clearSession();
+
     navigate("/login", { replace: true });
   };
-
-  // IMAGES
 
   const resolveImage = (src) => {
     if (!src) return "";
@@ -126,11 +181,54 @@ const Dashboard = () => {
     return `${API_URL}${src}`;
   };
 
-  // PRODUCTS
+  const handleImageSelection = (event) => {
+    const files = Array.from(event.target.files || []).slice(0, 5);
+
+    setImageFiles(files);
+  };
+
+  const setMainImage = (index) => {
+    setImageFiles((currentFiles) => {
+      if (index <= 0 || index >= currentFiles.length) {
+        return currentFiles;
+      }
+
+      const reorderedFiles = [...currentFiles];
+      const [selectedFile] = reorderedFiles.splice(index, 1);
+
+      return [selectedFile, ...reorderedFiles];
+    });
+  };
+
+  useEffect(() => {
+    const previews = imageFiles.map((file) => URL.createObjectURL(file));
+
+    setImagePreviews(previews);
+
+    return () => {
+      previews.forEach((preview) => URL.revokeObjectURL(preview));
+    };
+  }, [imageFiles]);
 
   const refreshProducts = async () => {
+    const token = sessionStorage.getItem("admin_token");
+
+    if (!token) {
+      await handleExpiredSession();
+      return;
+    }
+
     try {
-      const response = await fetch(`${API_URL}/api/products`);
+      const response = await fetch(`${API_URL}/api/products/admin`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 401 || response.status === 403) {
+        await handleExpiredSession();
+        return;
+      }
 
       if (!response.ok) {
         throw new Error("Error al obtener datos");
@@ -148,59 +246,81 @@ const Dashboard = () => {
 
   useEffect(() => {
     refreshProducts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const totalProducts = products.length;
-  const totalFeatured = products.filter((product) => product.featured).length;
 
-  // CATALOG PDF REPORT
+  const totalFeatured = products.filter((product) => product.featured).length;
 
   const generateCatalogPDF = () => {
     try {
       const doc = new jsPDF();
+
       const date = new Date().toLocaleDateString("es-AR");
 
       doc.setFillColor(64, 90, 71);
+
       doc.rect(0, 0, 210, 34, "F");
 
       doc.setFont("helvetica", "bold");
+
       doc.setFontSize(17);
+
       doc.setTextColor(255, 255, 255);
+
       doc.text("EPULÉN SEGURIDAD INDUSTRIAL", 14, 15);
 
       doc.setFont("helvetica", "normal");
+
       doc.setFontSize(9);
+
       doc.setTextColor(229, 234, 226);
+
       doc.text(`Reporte de catálogo · ${date}`, 14, 24);
 
       const tableData = products.map((product) => [
         product.name || "Sin nombre",
+
         product.category || "S/C",
+
         product.subcategory || "-",
+
         `$${Number(product.price || 0).toLocaleString("es-AR")}`,
+
         product.featured ? "Sí" : "No",
       ]);
 
       autoTable(doc, {
         startY: 42,
+
         head: [
           ["Producto", "Categoría", "Subcategoría", "Precio", "Destacado"],
         ],
+
         body: tableData,
+
         theme: "striped",
+
         headStyles: {
           fillColor: [64, 90, 71],
+
           textColor: [255, 255, 255],
+
           fontStyle: "bold",
         },
+
         alternateRowStyles: {
           fillColor: [247, 246, 242],
         },
+
         styles: {
           textColor: [36, 49, 40],
+
           lineColor: [221, 225, 218],
+
           lineWidth: 0.15,
+
           fontSize: 8.5,
         },
       });
@@ -214,10 +334,14 @@ const Dashboard = () => {
       const summaryY = finalY > 270 ? 20 : finalY + 12;
 
       doc.setFontSize(8);
+
       doc.setTextColor(125, 134, 126);
+
       doc.text(
         `Productos cargados: ${totalProducts} · Destacados: ${totalFeatured}`,
+
         14,
+
         summaryY,
       );
 
@@ -225,10 +349,15 @@ const Dashboard = () => {
 
       Swal.fire({
         ...swalStyle,
+
         icon: "success",
+
         title: "Reporte generado",
+
         text: "El catálogo se descargó correctamente.",
+
         timer: 1800,
+
         showConfirmButton: false,
       });
     } catch (error) {
@@ -236,14 +365,15 @@ const Dashboard = () => {
 
       Swal.fire({
         ...swalStyle,
+
         icon: "error",
+
         title: "No se pudo generar el PDF",
+
         text: "Revisá la consola para más detalles.",
       });
     }
   };
-
-  // CREATE / UPDATE PRODUCT
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -252,14 +382,18 @@ const Dashboard = () => {
 
     if (!token) {
       await handleExpiredSession();
+
       return;
     }
 
     if (formProduct.category === "Protección" && !formProduct.subcategory) {
       await Swal.fire({
         ...swalStyle,
+
         icon: "warning",
+
         title: "Falta la subcategoría",
+
         text: "Seleccioná el tipo de protección del producto.",
       });
 
@@ -269,8 +403,11 @@ const Dashboard = () => {
     if (!isEditing && imageFiles.length === 0) {
       await Swal.fire({
         ...swalStyle,
+
         icon: "warning",
+
         title: "Falta una imagen",
+
         text: "Seleccioná al menos una imagen para crear el producto.",
       });
 
@@ -279,25 +416,34 @@ const Dashboard = () => {
 
     Swal.fire({
       ...swalStyle,
+
       title: isEditing ? "Actualizando producto..." : "Creando producto...",
+
       didOpen: () => Swal.showLoading(),
+
       allowOutsideClick: false,
+
       showConfirmButton: false,
     });
 
     const formData = new FormData();
 
-    // Backend field names remain in Spanish for API compatibility.
     formData.append("name", formProduct.name.trim());
+
     formData.append("description", formProduct.description.trim());
+
     formData.append("category", formProduct.category.trim());
+
     formData.append(
       "subcategory",
+
       formProduct.category === "Protección"
         ? formProduct.subcategory.trim()
         : "",
     );
+
     formData.append("price", Number(formProduct.price));
+
     formData.append("featured", formProduct.featured);
 
     imageFiles.forEach((file) => {
@@ -311,14 +457,17 @@ const Dashboard = () => {
     try {
       const response = await fetch(url, {
         method: isEditing ? "PUT" : "POST",
+
         headers: {
           Authorization: `Bearer ${token}`,
         },
+
         body: formData,
       });
 
       if (response.status === 401 || response.status === 403) {
         await handleExpiredSession();
+
         return;
       }
 
@@ -327,9 +476,10 @@ const Dashboard = () => {
 
         try {
           const data = await response.json();
+
           message = data?.msg || data?.message || message;
         } catch {
-          // Response has no JSON body.
+          message = "No se pudo interpretar la respuesta del servidor.";
         }
 
         throw new Error(message);
@@ -337,45 +487,60 @@ const Dashboard = () => {
 
       await Swal.fire({
         ...swalStyle,
+
         icon: "success",
+
         title: isEditing ? "Producto actualizado" : "Producto creado",
+
         timer: 1800,
+
         showConfirmButton: false,
       });
 
       cancelEditing();
+
       await refreshProducts();
     } catch (error) {
       console.error("Error saving product:", error);
 
       await Swal.fire({
         ...swalStyle,
+
         icon: "error",
+
         title: "Error de servidor",
+
         text: error.message || "No se pudo guardar el producto.",
       });
     }
   };
-
-  // DELETE PRODUCT
 
   const deleteProduct = async (id) => {
     const token = sessionStorage.getItem("admin_token");
 
     if (!token) {
       await handleExpiredSession();
+
       return;
     }
 
     const result = await Swal.fire({
       ...swalStyle,
+
       title: "¿Eliminar producto?",
+
       text: "Esta acción no se puede deshacer.",
+
       icon: "warning",
+
       showCancelButton: true,
+
       confirmButtonColor: "#9A5D51",
+
       cancelButtonColor: "#8A948B",
+
       confirmButtonText: "Sí, eliminar",
+
       cancelButtonText: "Cancelar",
     });
 
@@ -384,6 +549,7 @@ const Dashboard = () => {
     try {
       const response = await fetch(`${API_URL}/api/products/${id}`, {
         method: "DELETE",
+
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -391,6 +557,7 @@ const Dashboard = () => {
 
       if (response.status === 401 || response.status === 403) {
         await handleExpiredSession();
+
         return;
       }
 
@@ -399,9 +566,10 @@ const Dashboard = () => {
 
         try {
           const data = await response.json();
+
           message = data?.msg || data?.message || message;
         } catch {
-          // Response has no JSON body.
+          message = "No se pudo interpretar la respuesta del servidor.";
         }
 
         throw new Error(message);
@@ -409,9 +577,13 @@ const Dashboard = () => {
 
       await Swal.fire({
         ...swalStyle,
+
         title: "Producto eliminado",
+
         icon: "success",
+
         timer: 1500,
+
         showConfirmButton: false,
       });
 
@@ -421,26 +593,34 @@ const Dashboard = () => {
 
       await Swal.fire({
         ...swalStyle,
+
         icon: "error",
+
         title: "Error al eliminar",
+
         text: error.message || "No se pudo eliminar el producto.",
       });
     }
   };
 
-  // EDITING
-
   const startEditing = (product) => {
     setIsEditing(true);
+
     setEditingId(product.id);
 
     setFormProduct({
       name: product.name || "",
+
       description: product.description || "",
+
       category: product.category || "",
+
       subcategory: product.subcategory || "",
+
       price: product.price ?? "",
+
       featured: Boolean(product.featured),
+
       previousImageUrl: product.imageUrl || product.images?.[0] || null,
     });
 
@@ -448,18 +628,20 @@ const Dashboard = () => {
 
     window.scrollTo({
       top: 0,
+
       behavior: "smooth",
     });
   };
 
   const cancelEditing = () => {
     setIsEditing(false);
+
     setEditingId(null);
+
     setFormProduct(initialProductState);
+
     setImageFiles([]);
   };
-
-  // FILTERING
 
   const filteredProducts = products.filter((product) => {
     const query = search.trim().toLowerCase();
@@ -479,8 +661,6 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-[#F4F2EC] py-8 sm:py-10 px-4 sm:px-6 text-[#243128]">
       <div className="max-w-7xl mx-auto">
-        {/* HEADER */}
-
         <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8 mb-10 pb-8 border-b border-[#D8DDD4]">
           <div>
             <p className="text-[#788873] text-xs font-medium uppercase tracking-[0.2em] mb-2">
@@ -560,11 +740,10 @@ const Dashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_0.95fr] gap-8">
-          {/* PRODUCT FORM */}
-
           <section
             className={[
               "bg-[#FCFBF8] p-5 sm:p-7 lg:p-8 rounded-[28px] border transition-all shadow-[0_18px_50px_rgba(36,49,40,0.05)]",
+
               isEditing ? "border-[#9AA996]" : "border-[#D8DDD4]",
             ].join(" ")}
           >
@@ -591,12 +770,10 @@ const Dashboard = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* PREVIEW */}
-
               <div className="bg-[#F7F6F2] rounded-3xl min-h-52.5 p-5 border border-[#E0E3DD] flex items-center justify-center">
                 {imageFiles.length > 0 ? (
                   <img
-                    src={URL.createObjectURL(imageFiles[0])}
+                    src={imagePreviews[0]}
                     className="h-44 max-w-full object-contain rounded-xl"
                     alt="Vista previa"
                   />
@@ -627,7 +804,71 @@ const Dashboard = () => {
                 )}
               </div>
 
-              {/* NAME */}
+              {imageFiles.length > 0 && (
+                <div>
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium text-[#526054]">
+                        Imágenes seleccionadas
+                      </p>
+
+                      <p className="mt-1 text-xs text-[#828B83]">
+                        La imagen principal será la primera que vea el cliente.
+                      </p>
+                    </div>
+
+                    <span className="shrink-0 rounded-full bg-[#E7ECE4] px-3 py-1.5 text-[11px] font-medium text-[#526D57]">
+                      {imageFiles.length}/5
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    {imageFiles.map((file, index) => (
+                      <div
+                        key={`${file.name}-${file.lastModified}-${index}`}
+                        className={[
+                          "relative overflow-hidden rounded-2xl border bg-[#F8F7F3] p-2 transition-all",
+                          index === 0
+                            ? "border-[#405A47] ring-2 ring-[#405A47]/10"
+                            : "border-[#D8DDD4]",
+                        ].join(" ")}
+                      >
+                        <div className="flex h-28 items-center justify-center overflow-hidden rounded-xl bg-white">
+                          <img
+                            src={imagePreviews[index]}
+                            alt={`Imagen ${index + 1} de ${formProduct.name || "producto"}`}
+                            className="h-full w-full object-contain p-2"
+                          />
+                        </div>
+
+                        <div className="mt-2">
+                          {index === 0 ? (
+                            <div className="flex items-center justify-center gap-1.5 rounded-lg bg-[#E5EAE2] px-2.5 py-2 text-xs font-semibold text-[#405A47]">
+                              <span aria-hidden="true">★</span>
+                              Principal
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setMainImage(index)}
+                              className="w-full rounded-lg border border-[#D5DBD2] bg-white px-2.5 py-2 text-xs font-medium text-[#59665B] transition-colors hover:border-[#9FAC9B] hover:bg-[#F0F2ED] hover:text-[#243128]"
+                            >
+                              Hacer principal
+                            </button>
+                          )}
+                        </div>
+
+                        <p
+                          className="mt-2 truncate px-1 text-[10px] text-[#929A92]"
+                          title={file.name}
+                        >
+                          {file.name}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-[#526054] mb-2">
@@ -642,14 +883,13 @@ const Dashboard = () => {
                   onChange={(event) =>
                     setFormProduct({
                       ...formProduct,
+
                       name: event.target.value,
                     })
                   }
                   required
                 />
               </div>
-
-              {/* PRICE / CATEGORY */}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -666,6 +906,7 @@ const Dashboard = () => {
                     onChange={(event) =>
                       setFormProduct({
                         ...formProduct,
+
                         price: event.target.value,
                       })
                     }
@@ -686,7 +927,9 @@ const Dashboard = () => {
 
                       setFormProduct({
                         ...formProduct,
+
                         category,
+
                         subcategory:
                           category === "Protección"
                             ? formProduct.subcategory
@@ -706,8 +949,6 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              {/* PROTECTION SUBCATEGORY */}
-
               {formProduct.category === "Protección" && (
                 <div className="bg-[#F3F5F0] p-4 sm:p-5 rounded-2xl border border-[#DCE1D8]">
                   <label className="block text-sm font-medium text-[#526054] mb-2">
@@ -720,6 +961,7 @@ const Dashboard = () => {
                     onChange={(event) =>
                       setFormProduct({
                         ...formProduct,
+
                         subcategory: event.target.value,
                       })
                     }
@@ -740,8 +982,6 @@ const Dashboard = () => {
                 </div>
               )}
 
-              {/* DESCRIPTION */}
-
               <div>
                 <label className="block text-sm font-medium text-[#526054] mb-2">
                   Descripción
@@ -754,14 +994,13 @@ const Dashboard = () => {
                   onChange={(event) =>
                     setFormProduct({
                       ...formProduct,
+
                       description: event.target.value,
                     })
                   }
                   required
                 />
               </div>
-
-              {/* FEATURED */}
 
               <label className="flex items-center justify-between gap-4 p-4 rounded-2xl border border-[#DCE1D8] bg-[#FAF9F5] cursor-pointer">
                 <div>
@@ -780,6 +1019,7 @@ const Dashboard = () => {
                   onChange={(event) =>
                     setFormProduct({
                       ...formProduct,
+
                       featured: event.target.checked,
                     })
                   }
@@ -787,17 +1027,13 @@ const Dashboard = () => {
                 />
               </label>
 
-              {/* IMAGES / SAVE */}
-
               <div className="grid grid-cols-1 sm:grid-cols-[1fr_1.2fr] gap-3 pt-1">
                 <div className="relative bg-[#F7F6F2] p-4 rounded-xl text-center border border-[#D6DCD3] cursor-pointer hover:bg-[#F0F2ED] transition-colors">
                   <input
                     type="file"
                     multiple
                     className="absolute inset-0 opacity-0 cursor-pointer"
-                    onChange={(event) =>
-                      setImageFiles(Array.from(event.target.files))
-                    }
+                    onChange={handleImageSelection}
                     accept="image/jpeg,image/png,image/webp"
                   />
 
@@ -824,8 +1060,6 @@ const Dashboard = () => {
             </form>
           </section>
 
-          {/* PRODUCT LIST */}
-
           <section className="bg-[#FCFBF8] p-5 sm:p-7 lg:p-8 rounded-[28px] border border-[#D8DDD4] flex flex-col xl:max-h-212.5 shadow-[0_18px_50px_rgba(36,49,40,0.05)]">
             <div className="mb-6">
               <p className="text-xs text-[#788873] font-medium mb-1">
@@ -836,8 +1070,6 @@ const Dashboard = () => {
                 Productos cargados
               </h2>
             </div>
-
-            {/* SEARCH / FILTER */}
 
             <div className="grid grid-cols-1 sm:grid-cols-[1fr_170px] gap-3 mb-6">
               <div className="relative">
@@ -879,8 +1111,6 @@ const Dashboard = () => {
               </select>
             </div>
 
-            {/* PRODUCTS */}
-
             <div className="overflow-y-auto space-y-3 pr-1 custom-scrollbar">
               {filteredProducts.length === 0 ? (
                 <div className="text-center py-14 border border-dashed border-[#D1D7CE] rounded-2xl bg-[#FAF9F5]">
@@ -898,6 +1128,7 @@ const Dashboard = () => {
                     key={product.id}
                     className={[
                       "bg-[#FAF9F5] border p-4 rounded-2xl flex gap-4 items-center transition-all",
+
                       product.featured
                         ? "border-[#AAB7A6] shadow-[0_8px_24px_rgba(64,90,71,0.06)]"
                         : "border-[#E0E3DD]",
@@ -934,8 +1165,11 @@ const Dashboard = () => {
 
                       <p className="text-xs text-[#828B83] mt-1">
                         {product.category || "Sin categoría"}
+
                         {product.subcategory ? ` · ${product.subcategory}` : ""}
+
                         {" · $"}
+
                         {Number(product.price || 0).toLocaleString("es-AR")}
                       </p>
 

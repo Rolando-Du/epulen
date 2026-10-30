@@ -1,5 +1,4 @@
 import React from "react";
-
 import {
   BrowserRouter as Router,
   Routes,
@@ -17,13 +16,11 @@ import Dashboard from "../pages/Dashboard";
 import Login from "../pages/Login";
 import ProductDetail from "../pages/ProductDetail";
 
-// PRIVATE ROUTE
-
 const ProtectedRoute = ({ children }) => {
-  const isAuthenticated =
-    sessionStorage.getItem("admin_auth") === "true";
+  const token =
+    sessionStorage.getItem("admin_token");
 
-  return isAuthenticated ? (
+  return token ? (
     children
   ) : (
     <Navigate
@@ -33,13 +30,11 @@ const ProtectedRoute = ({ children }) => {
   );
 };
 
-// PUBLIC LOGIN ROUTE
-
 const PublicRoute = ({ children }) => {
-  const isAuthenticated =
-    sessionStorage.getItem("admin_auth") === "true";
+  const token =
+    sessionStorage.getItem("admin_token");
 
-  return isAuthenticated ? (
+  return token ? (
     <Navigate
       to="/admin"
       replace
@@ -48,8 +43,6 @@ const PublicRoute = ({ children }) => {
     children
   );
 };
-
-// APP ROUTER
 
 const AppRouter = () => {
   return (
@@ -61,8 +54,6 @@ const AppRouter = () => {
 
         <div className="grow">
           <Routes>
-            {/* PUBLIC ROUTES */}
-
             <Route
               path="/"
               element={<Home />}
@@ -77,8 +68,6 @@ const AppRouter = () => {
               path="/product/:id"
               element={<ProductDetail />}
             />
-
-            {/* LEGACY ROUTES */}
 
             <Route
               path="/productos"
@@ -95,8 +84,6 @@ const AppRouter = () => {
               element={<ProductDetail />}
             />
 
-            {/* LOGIN */}
-
             <Route
               path="/login"
               element={
@@ -106,8 +93,6 @@ const AppRouter = () => {
               }
             />
 
-            {/* ADMIN */}
-
             <Route
               path="/admin"
               element={
@@ -116,8 +101,6 @@ const AppRouter = () => {
                 </ProtectedRoute>
               }
             />
-
-            {/* 404 */}
 
             <Route
               path="*"

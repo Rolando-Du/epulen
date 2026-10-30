@@ -1,14 +1,6 @@
-import React, {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
-import {
-  Link,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import LogoEpulen from "../assets/epulen.png";
 
@@ -16,48 +8,38 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [isAuthenticated, setIsAuthenticated] =
-    useState(
-      sessionStorage.getItem("admin_auth") ===
-        "true"
-    );
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    Boolean(sessionStorage.getItem("admin_token")),
+  );
 
-  const [mobileOpen, setMobileOpen] =
-    useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     const checkAuth = () => {
-      setIsAuthenticated(
-        sessionStorage.getItem(
-          "admin_auth"
-        ) === "true"
-      );
+      setIsAuthenticated(Boolean(sessionStorage.getItem("admin_token")));
     };
 
     checkAuth();
 
-    window.addEventListener(
-      "storage",
-      checkAuth
-    );
+    window.addEventListener("storage", checkAuth);
 
-    return () =>
-      window.removeEventListener(
-        "storage",
-        checkAuth
-      );
-  }, [location]);
+    return () => {
+      window.removeEventListener("storage", checkAuth);
+    };
+  }, [location.pathname]);
 
   const closeMobileMenu = () => {
     setMobileOpen(false);
   };
 
   const handleLogout = () => {
-    sessionStorage.removeItem("admin_auth");
     sessionStorage.removeItem("admin_token");
 
-    localStorage.removeItem("admin_auth");
     localStorage.removeItem("admin_token");
+
+    sessionStorage.removeItem("admin_auth");
+
+    localStorage.removeItem("admin_auth");
 
     setIsAuthenticated(false);
     setMobileOpen(false);
@@ -80,7 +62,7 @@ const Navbar = () => {
     if (isAuthenticated) {
       baseLinks.push({
         to: "/admin",
-        label: "Panel",
+        label: "Panel admin",
       });
     }
 
@@ -92,17 +74,13 @@ const Navbar = () => {
       return location.pathname === "/";
     }
 
-    return location.pathname.startsWith(
-      to
-    );
+    return location.pathname.startsWith(to);
   };
 
   return (
     <nav className="sticky top-0 z-50 border-b border-[#D7DDD4] bg-[#F4F2EC]/92 backdrop-blur-xl">
       <div className="mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-12">
         <div className="flex h-18 items-center justify-between sm:h-20">
-          {/* BRAND */}
-
           <Link
             to="/"
             onClick={closeMobileMenu}
@@ -126,8 +104,6 @@ const Navbar = () => {
               </span>
             </div>
           </Link>
-
-          {/* DESKTOP MENU */}
 
           <div className="hidden items-center gap-2 md:flex">
             <div className="flex items-center gap-1 rounded-full border border-[#D8DDD4] bg-[#FCFBF8]/80 p-1">
@@ -166,27 +142,16 @@ const Navbar = () => {
                     d="M15 12H3m0 0 4-4m-4 4 4 4m5-13h5a2 2 0 012 2v14a2 2 0 01-2 2h-5"
                   />
                 </svg>
-
                 Salir
               </button>
             )}
           </div>
 
-          {/* MOBILE MENU BUTTON */}
-
           <button
             type="button"
-            onClick={() =>
-              setMobileOpen(
-                (value) => !value
-              )
-            }
+            onClick={() => setMobileOpen((value) => !value)}
             className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[#D6DCD3] bg-[#FCFBF8] text-[#405A47] transition-colors hover:bg-[#EEF1EA] md:hidden"
-            aria-label={
-              mobileOpen
-                ? "Cerrar menú"
-                : "Abrir menú"
-            }
+            aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
             aria-expanded={mobileOpen}
           >
             {mobileOpen ? (
@@ -221,8 +186,6 @@ const Navbar = () => {
           </button>
         </div>
 
-        {/* MOBILE MENU */}
-
         {mobileOpen && (
           <div className="pb-4 md:hidden">
             <div className="rounded-2xl border border-[#D8DDD4] bg-[#FCFBF8] p-2 shadow-[0_18px_45px_rgba(36,49,40,0.08)]">
@@ -231,9 +194,7 @@ const Navbar = () => {
                   <Link
                     key={link.to}
                     to={link.to}
-                    onClick={
-                      closeMobileMenu
-                    }
+                    onClick={closeMobileMenu}
                     className={[
                       "flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition-colors",
                       isActive(link.to)
@@ -241,13 +202,9 @@ const Navbar = () => {
                         : "text-[#5F6A61] hover:bg-[#F1F3EE] hover:text-[#243128]",
                     ].join(" ")}
                   >
-                    <span>
-                      {link.label}
-                    </span>
+                    <span>{link.label}</span>
 
-                    {isActive(
-                      link.to
-                    ) && (
+                    {isActive(link.to) && (
                       <span className="h-2 w-2 rounded-full bg-[#788873]" />
                     )}
                   </Link>
@@ -259,9 +216,7 @@ const Navbar = () => {
 
                     <button
                       type="button"
-                      onClick={
-                        handleLogout
-                      }
+                      onClick={handleLogout}
                       className="flex items-center gap-2 rounded-xl px-4 py-3 text-left text-sm font-medium text-[#9A5D51] transition-colors hover:bg-[#F7ECE9]"
                     >
                       <svg
@@ -277,7 +232,6 @@ const Navbar = () => {
                           d="M15 12H3m0 0 4-4m-4 4 4 4m5-13h5a2 2 0 012 2v14a2 2 0 01-2 2h-5"
                         />
                       </svg>
-
                       Cerrar sesión
                     </button>
                   </>

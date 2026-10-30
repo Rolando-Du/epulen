@@ -45,33 +45,24 @@ const Home = () => {
           throw new Error("Falta VITE_API_URL");
         }
 
-        const response = await fetch(
-          `${API_URL}/api/products`
-        );
+        const response = await fetch(`${API_URL}/api/products`);
 
         if (!response.ok) {
-          throw new Error(
-            "Error al obtener productos"
-          );
+          throw new Error("Error al obtener productos");
         }
 
         const data = await response.json();
 
-        const products = Array.isArray(data)
-          ? data
-          : [];
+        const products = Array.isArray(data) ? data : [];
 
         const featured = products.filter(
-          (product) => product.featured === true
+          (product) => product.featured === true,
         );
 
         setFeaturedProducts(featured);
         setFilteredProducts(featured);
       } catch (error) {
-        console.error(
-          "Error loading products:",
-          error
-        );
+        console.error("Error loading products:", error);
 
         setFeaturedProducts([]);
         setFilteredProducts([]);
@@ -88,61 +79,39 @@ const Home = () => {
     setActiveSubcategory("Todas");
 
     if (category === "Todos") {
-      setFilteredProducts(
-        featuredProducts
-      );
+      setFilteredProducts(featuredProducts);
 
       return;
     }
 
-    const searchedCategory =
-      category.toLowerCase();
+    const searchedCategory = category.toLowerCase();
 
-    const filtered =
-      featuredProducts.filter(
-        (product) =>
-          (
-            product.category || ""
-          ).toLowerCase() ===
-          searchedCategory
-      );
+    const filtered = featuredProducts.filter(
+      (product) => (product.category || "").toLowerCase() === searchedCategory,
+    );
 
     setFilteredProducts(filtered);
   };
 
-  const filterBySubcategory = (
-    subcategory
-  ) => {
+  const filterBySubcategory = (subcategory) => {
     setActiveSubcategory(subcategory);
 
-    const protectionProducts =
-      featuredProducts.filter(
-        (product) =>
-          (
-            product.category || ""
-          ).toLowerCase() ===
-          "protección"
-      );
+    const protectionProducts = featuredProducts.filter(
+      (product) => (product.category || "").toLowerCase() === "protección",
+    );
 
     if (subcategory === "Todas") {
-      setFilteredProducts(
-        protectionProducts
-      );
+      setFilteredProducts(protectionProducts);
 
       return;
     }
 
-    const searchedSubcategory =
-      subcategory.toLowerCase();
+    const searchedSubcategory = subcategory.toLowerCase();
 
-    const filtered =
-      protectionProducts.filter(
-        (product) =>
-          (
-            product.subcategory || ""
-          ).toLowerCase() ===
-          searchedSubcategory
-      );
+    const filtered = protectionProducts.filter(
+      (product) =>
+        (product.subcategory || "").toLowerCase() === searchedSubcategory,
+    );
 
     setFilteredProducts(filtered);
   };
@@ -159,30 +128,24 @@ const Home = () => {
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-[-0.035em] text-[#243128]">
             Productos seleccionados para trabajar con{" "}
-            <span className="text-[#9A6750]">
-              seguridad
-            </span>
+            <span className="text-[#9A6750]">seguridad</span>
           </h2>
 
           <p className="mt-5 max-w-2xl text-[#687168] leading-relaxed">
-            Equipamiento e indumentaria pensados para
-            acompañar el trabajo diario con protección,
-            comodidad y confianza.
+            Equipamiento e indumentaria pensados para acompañar el trabajo
+            diario con protección, comodidad y confianza.
           </p>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {CATEGORIES.map((category) => {
-            const isActive =
-              activeCategory === category;
+            const isActive = activeCategory === category;
 
             return (
               <button
                 key={category}
                 type="button"
-                onClick={() =>
-                  filterByCategory(category)
-                }
+                onClick={() => filterByCategory(category)}
                 className={[
                   "min-h-17.5 px-5 py-4 rounded-2xl border text-sm font-medium",
                   "transition-all duration-300",
@@ -204,39 +167,29 @@ const Home = () => {
             </p>
 
             <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-              {PROTECTION_SUBCATEGORIES.map(
-                (subcategory) => {
-                  const isActive =
-                    activeSubcategory ===
-                    subcategory;
+              {PROTECTION_SUBCATEGORIES.map((subcategory) => {
+                const isActive = activeSubcategory === subcategory;
 
-                  return (
-                    <button
-                      key={subcategory}
-                      type="button"
-                      onClick={() =>
-                        filterBySubcategory(
-                          subcategory
-                        )
-                      }
-                      className={[
-                        "px-4 py-2.5 rounded-xl",
-                        "text-xs font-medium",
-                        "whitespace-nowrap",
-                        "border",
-                        "transition-all duration-200",
-                        isActive
-                          ? "bg-[#9A6750] border-[#9A6750] text-white"
-                          : "bg-[#FAF8F4] border-[#DDD5CE] text-[#755E53] hover:bg-white hover:border-[#BFA99D]",
-                      ].join(" ")}
-                    >
-                      {subcategory === "Todas"
-                        ? "Toda protección"
-                        : subcategory}
-                    </button>
-                  );
-                }
-              )}
+                return (
+                  <button
+                    key={subcategory}
+                    type="button"
+                    onClick={() => filterBySubcategory(subcategory)}
+                    className={[
+                      "px-4 py-2.5 rounded-xl",
+                      "text-xs font-medium",
+                      "whitespace-nowrap",
+                      "border",
+                      "transition-all duration-200",
+                      isActive
+                        ? "bg-[#9A6750] border-[#9A6750] text-white"
+                        : "bg-[#FAF8F4] border-[#DDD5CE] text-[#755E53] hover:bg-white hover:border-[#BFA99D]",
+                    ].join(" ")}
+                  >
+                    {subcategory === "Todas" ? "Toda protección" : subcategory}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
@@ -269,40 +222,27 @@ const Home = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7 lg:gap-8">
-                  {filteredProducts
-                    .slice(0, VISIBLE_COUNT)
-                    .map((product) => (
-                      <ProductCard
-                        key={product.id || product._id}
-                        id={product.id || product._id}
-                        name={product.name}
-                        category={product.category}
-                        subcategory={
-                          product.subcategory
-                        }
-                        price={product.price}
-                        image={
-                          product.imageUrl ||
-                          (Array.isArray(
-                            product.images
-                          )
-                            ? product.images[0]
-                            : "")
-                        }
-                        description={
-                          product.description
-                        }
-                      />
-                    ))}
+                  {filteredProducts.slice(0, VISIBLE_COUNT).map((product) => (
+                    <ProductCard
+                      key={product.id || product._id}
+                      id={product.id || product._id}
+                      name={product.name}
+                      category={product.category}
+                      subcategory={product.subcategory}
+                      image={
+                        product.imageUrl ||
+                        (Array.isArray(product.images) ? product.images[0] : "")
+                      }
+                      description={product.description}
+                    />
+                  ))}
                 </div>
               )}
 
               <div className="mt-16 flex justify-center">
                 <button
                   type="button"
-                  onClick={() =>
-                    navigate("/products")
-                  }
+                  onClick={() => navigate("/products")}
                   className="
                     px-8 py-4
                     bg-[#243128]
@@ -318,9 +258,7 @@ const Home = () => {
                   "
                 >
                   Ver catálogo completo
-                  <span className="ml-2">
-                    →
-                  </span>
+                  <span className="ml-2">→</span>
                 </button>
               </div>
             </>

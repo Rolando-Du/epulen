@@ -9,6 +9,9 @@ const PROTECTION_SUBCATEGORIES = [
   "Protección respiratoria",
 ];
 
+const PUBLIC_PRODUCT_EXCLUDED_FIELDS =
+  "-price -imagePublicIds";
+
 const normalizeCategory = (category = "") => {
   return category.trim();
 };
@@ -88,9 +91,11 @@ export const getProducts = async (
   res
 ) => {
   try {
-    const products = await Product.find().sort({
-      createdAt: -1,
-    });
+    const products = await Product.find()
+      .select(PUBLIC_PRODUCT_EXCLUDED_FIELDS)
+      .sort({
+        createdAt: -1,
+      });
 
     return res.json(products);
   } catch (error) {
@@ -121,6 +126,72 @@ export const getProductById = async (
       });
     }
 
+    const product = await Product.findById(
+      id
+    ).select(
+      PUBLIC_PRODUCT_EXCLUDED_FIELDS
+    );
+
+    if (!product) {
+      return res.status(404).json({
+        message:
+          "Producto no encontrado",
+      });
+    }
+
+    return res.json(product);
+  } catch (error) {
+    console.error(
+      "Error al buscar producto:",
+      error
+    );
+
+    return res.status(500).json({
+      message:
+        "Error al buscar el producto",
+    });
+  }
+};
+
+export const getAdminProducts = async (
+  req,
+  res
+) => {
+  try {
+    const products = await Product.find().sort({
+      createdAt: -1,
+    });
+
+    return res.json(products);
+  } catch (error) {
+    console.error(
+      "Error al obtener productos administrativos:",
+      error
+    );
+
+    return res.status(500).json({
+      message:
+        "Error al obtener productos",
+    });
+  }
+};
+
+export const getAdminProductById = async (
+  req,
+  res
+) => {
+  try {
+    const { id } = req.params;
+
+    if (
+      !mongoose.Types.ObjectId.isValid(id)
+    ) {
+      return res.status(400).json({
+        message:
+          "ID de producto no válido",
+      });
+    }
+
     const product =
       await Product.findById(id);
 
@@ -134,7 +205,7 @@ export const getProductById = async (
     return res.json(product);
   } catch (error) {
     console.error(
-      "Error al buscar producto:",
+      "Error al buscar producto administrativo:",
       error
     );
 

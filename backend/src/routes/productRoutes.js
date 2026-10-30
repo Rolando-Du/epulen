@@ -3,6 +3,8 @@ import express from "express";
 import {
   getProducts,
   getProductById,
+  getAdminProducts,
+  getAdminProductById,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -31,6 +33,18 @@ const uploadImages = (req, res, next) => {
     }
   );
 };
+
+router.get(
+  "/admin",
+  authAdmin,
+  getAdminProducts
+);
+
+router.get(
+  "/admin/:id",
+  authAdmin,
+  getAdminProductById
+);
 
 router.get("/", getProducts);
 

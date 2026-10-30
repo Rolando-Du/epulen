@@ -340,12 +340,9 @@ const Products = () => {
                     name={product.name}
                     category={product.category}
                     subcategory={product.subcategory}
-                    price={product.price}
                     image={
                       product.imageUrl ||
-                      (Array.isArray(product.images)
-                        ? product.images[0]
-                        : "")
+                      (Array.isArray(product.images) ? product.images[0] : "")
                     }
                     description={product.description}
                   />
